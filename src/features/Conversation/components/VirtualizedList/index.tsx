@@ -8,6 +8,7 @@ import { Center, Flexbox } from 'react-layout-kit';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 import { isServerMode } from '@/const/version';
+import WideScreenContainer from '@/features/Conversation/components/WideScreenContainer';
 import { useChatStore } from '@/store/chat';
 import { chatSelectors } from '@/store/chat/selectors';
 
@@ -66,19 +67,26 @@ const VirtualizedList = memo<VirtualizedListProps>(({ mobile, dataSource, itemCo
 
   return (
     <VirtuosoContext value={virtuosoRef}>
-      <Flexbox height={'100%'}>
-        <Virtuoso
-          atBottomStateChange={setAtBottom}
-          atBottomThreshold={50 * (mobile ? 2 : 1)}
-          computeItemKey={(_, item) => item}
-          data={dataSource}
-          followOutput={getFollowOutput}
-          increaseViewportBy={overscan}
-          initialTopMostItemIndex={dataSource?.length - 1}
-          isScrolling={setIsScrolling}
-          itemContent={itemContent}
-          ref={virtuosoRef}
-        />
+      <Virtuoso
+        atBottomStateChange={setAtBottom}
+        atBottomThreshold={50 * (mobile ? 2 : 1)}
+        components={{
+          List: (props) => (
+            <Flexbox flex={1} height={'100%'}>
+              <WideScreenContainer flex={1} height={'100%'} {...props} />
+            </Flexbox>
+          ),
+        }}
+        computeItemKey={(_, item) => item}
+        data={dataSource}
+        followOutput={getFollowOutput}
+        increaseViewportBy={overscan}
+        initialTopMostItemIndex={dataSource?.length - 1}
+        isScrolling={setIsScrolling}
+        itemContent={itemContent}
+        ref={virtuosoRef}
+      />
+      <WideScreenContainer>
         <AutoScroll
           atBottom={atBottom}
           isScrolling={isScrolling}
@@ -96,7 +104,7 @@ const VirtualizedList = memo<VirtualizedListProps>(({ mobile, dataSource, itemCo
             }
           }}
         />
-      </Flexbox>
+      </WideScreenContainer>
     </VirtuosoContext>
   );
 });

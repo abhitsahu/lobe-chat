@@ -236,6 +236,10 @@ export default {
     threadMessageCount: '{{messageCount}} 条消息',
     title: '子话题',
   },
+  toggleWideScreen: {
+    off: '关闭宽屏模式',
+    on: '开启宽屏模式',
+  },
   tokenDetails: {
     chats: '会话消息',
     historySummary: '历史总结',

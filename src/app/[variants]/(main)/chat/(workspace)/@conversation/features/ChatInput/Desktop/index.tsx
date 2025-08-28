@@ -4,6 +4,7 @@ import { memo } from 'react';
 
 import DesktopChatInput from '@/features/ChatInput/Desktop';
 import { ChatInputProvider } from '@/features/ChatInput/hooks/useChatInput';
+import WideScreenContainer from '@/features/Conversation/components/WideScreenContainer';
 
 const Desktop = memo(() => {
   return (
@@ -22,7 +23,9 @@ const Desktop = memo(() => {
         ],
       }}
     >
-      <DesktopChatInput />
+      <WideScreenContainer>
+        <DesktopChatInput />
+      </WideScreenContainer>
     </ChatInputProvider>
   );
 });

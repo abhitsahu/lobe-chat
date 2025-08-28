@@ -8,6 +8,7 @@ import { Flexbox } from 'react-layout-kit';
 
 import DesktopChatInput from '@/features/ChatInput/Desktop';
 import { ChatInputProvider } from '@/features/ChatInput/hooks/useChatInput';
+import WideScreenContainer from '@/features/Conversation/components/WideScreenContainer';
 import { useGlobalStore } from '@/store/global';
 import { systemStatusSelectors } from '@/store/global/selectors';
 
@@ -20,7 +21,7 @@ const Desktop = memo(() => {
   // TODO: 修复一下话题的发送
 
   return (
-    <>
+    <WideScreenContainer>
       {!hideThreadLimitAlert && (
         <Flexbox paddingBlock={'0 6px'} paddingInline={12}>
           <Alert
@@ -51,7 +52,7 @@ const Desktop = memo(() => {
       >
         <DesktopChatInput />
       </ChatInputProvider>
-    </>
+    </WideScreenContainer>
   );
 });
 
