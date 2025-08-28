@@ -86,7 +86,11 @@ const VirtualizedList = memo<VirtualizedListProps>(({ mobile, dataSource, itemCo
         itemContent={itemContent}
         ref={virtuosoRef}
       />
-      <WideScreenContainer>
+      <WideScreenContainer
+        style={{
+          position: 'relative',
+        }}
+      >
         <AutoScroll
           atBottom={atBottom}
           isScrolling={isScrolling}

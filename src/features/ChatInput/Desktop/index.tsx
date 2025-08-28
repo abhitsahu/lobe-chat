@@ -2,7 +2,6 @@
 
 import { ChatInput, ChatInputActionBar } from '@lobehub/editor/react';
 import { createStyles } from 'antd-style';
-import dynamic from 'next/dynamic';
 import { memo, useEffect } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
@@ -12,10 +11,9 @@ import { chatSelectors } from '@/store/chat/selectors';
 import ActionBar from '../ActionBar';
 import InputEditor from '../InputEditor';
 import SendArea from '../SendArea';
+import TypoBar from '../TypoBar';
 import { useChatInput } from '../hooks/useChatInput';
-
-const TypoBar = dynamic(() => import('../TypoBar'));
-const FilePreview = dynamic(() => import('./FilePreview'), { ssr: false });
+import FilePreview from './FilePreview';
 
 const useStyles = createStyles(({ css, token }) => ({
   container: css`
