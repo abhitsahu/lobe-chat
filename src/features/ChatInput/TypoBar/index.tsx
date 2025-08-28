@@ -18,10 +18,12 @@ import {
   UnderlineIcon,
 } from 'lucide-react';
 import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { useChatInput } from '../hooks/useChatInput';
 
 const TypoBar = memo(() => {
+  const { t } = useTranslation('editor');
   const { editorRef } = useChatInput();
   const toolbarState = useToolbarState(editorRef);
   const theme = useTheme();
@@ -36,28 +38,28 @@ const TypoBar = memo(() => {
                 active: toolbarState.isBold,
                 icon: BoldIcon,
                 key: 'bold',
-                label: 'Bold',
+                label: t('typobar.bold'),
                 onClick: toolbarState.bold,
               },
               {
                 active: toolbarState.isItalic,
                 icon: ItalicIcon,
                 key: 'italic',
-                label: 'Italic',
+                label: t('typobar.italic'),
                 onClick: toolbarState.italic,
               },
               {
                 active: toolbarState.isUnderline,
                 icon: UnderlineIcon,
                 key: 'underline',
-                label: 'Underline',
+                label: t('typobar.underline'),
                 onClick: toolbarState.underline,
               },
               {
                 active: toolbarState.isStrikethrough,
                 icon: StrikethroughIcon,
                 key: 'strikethrough',
-                label: 'Strikethrough',
+                label: t('typobar.strikethrough'),
                 onClick: toolbarState.strikethrough,
               },
               {
@@ -66,7 +68,7 @@ const TypoBar = memo(() => {
               {
                 icon: LinkIcon,
                 key: 'link',
-                label: 'link',
+                label: t('typobar.link'),
                 onClick: () => {
                   toolbarState.insertLink();
                 },
@@ -74,7 +76,7 @@ const TypoBar = memo(() => {
               {
                 icon: ListIcon,
                 key: 'bulletList',
-                label: 'bulletList',
+                label: t('typobar.bulletList'),
                 onClick: () => {
                   toolbarState.bulletList();
                 },
@@ -82,7 +84,7 @@ const TypoBar = memo(() => {
               {
                 icon: ListOrderedIcon,
                 key: 'numberlist',
-                label: 'numberlist',
+                label: t('typobar.numberList'),
                 onClick: () => {
                   toolbarState.numberList();
                 },
@@ -94,13 +96,13 @@ const TypoBar = memo(() => {
                 active: toolbarState.isCode,
                 icon: CodeXmlIcon,
                 key: 'code',
-                label: 'Code',
+                label: t('typobar.code'),
                 onClick: toolbarState.code,
               },
               !toolbarState.isInCodeblock && {
                 icon: SquareDashedBottomCodeIcon,
                 key: 'codeblock',
-                label: 'Codeblock',
+                label: t('typobar.codeblock'),
                 onClick: () => {
                   toolbarState.formatCodeblock();
                 },

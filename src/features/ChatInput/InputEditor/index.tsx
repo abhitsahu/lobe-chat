@@ -26,7 +26,7 @@ const InputEditor = memo<{ defaultRows?: number }>(({ defaultRows = 2 }) => {
   const { send, canSend } = useSend();
   const state = useToolbarState(editorRef);
   const { enableScope, disableScope } = useHotkeysContext();
-  const { t } = useTranslation('chat');
+  const { t } = useTranslation(['editor', 'chat']);
 
   const isChineseInput = useRef(false);
 
@@ -73,7 +73,7 @@ const InputEditor = memo<{ defaultRows?: number }>(({ defaultRows = 2 }) => {
           send();
         }
       }}
-      placeholder={t('sendPlaceholder')}
+      placeholder={t('sendPlaceholder', { ns: 'chat' })}
       plugins={[
         ReactListPlugin,
         ReactLinkPlugin,
@@ -86,7 +86,7 @@ const InputEditor = memo<{ defaultRows?: number }>(({ defaultRows = 2 }) => {
           {
             icon: Table2Icon,
             key: 'table',
-            label: 'Table',
+            label: t('typobar.table'),
             onSelect: (editor) => {
               editor.dispatchCommand(INSERT_TABLE_COMMAND, { columns: '3', rows: '3' });
             },
