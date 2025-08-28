@@ -3,32 +3,18 @@
 import { ChatInput, ChatInputActionBar } from '@lobehub/editor/react';
 import { createStyles } from 'antd-style';
 import dynamic from 'next/dynamic';
-import { memo, useEffect } from 'react';
+import { memo } from 'react';
 import { Flexbox } from 'react-layout-kit';
-
-import { useChatStore } from '@/store/chat';
-import { chatSelectors } from '@/store/chat/selectors';
 
 import ActionBar from '../ActionBar';
 import InputEditor from '../InputEditor';
 import SendArea from '../SendArea';
 import { useChatInput } from '../hooks/useChatInput';
 
-const TypoBar = dynamic(() => import('../TypoBar'));
 const FilePreview = dynamic(() => import('./FilePreview'), { ssr: false });
 
 const useStyles = createStyles(({ css, token }) => ({
-  container: css`
-    .show-on-hover {
-      display: none;
-    }
-
-    &:hover {
-      .show-on-hover {
-        display: flex;
-      }
-    }
-  `,
+  container: css``,
   fullscreen: css`
     position: absolute;
     z-index: 100;
@@ -38,19 +24,14 @@ const useStyles = createStyles(({ css, token }) => ({
     height: 100%;
     padding: 12px;
 
-    background: ${token.colorBgContainerSecondary};
+    background: ${token.colorBgContainer};
   `,
 }));
 
 const DesktopChatInput = memo(() => {
-  const { slashMenuRef, expand, showTypoBar, editorRef, actions } = useChatInput();
-  const chatKey = useChatStore(chatSelectors.currentChatKey);
-  const { styles, cx } = useStyles();
+  const { slashMenuRef, expand, actions } = useChatInput();
 
-  useEffect(() => {
-    if (!editorRef.current) return;
-    editorRef.current?.focus();
-  }, [chatKey]);
+  const { styles, cx } = useStyles();
 
   const fileNode = actions.flat().includes('fileUpload') && <FilePreview />;
 
@@ -65,7 +46,7 @@ const DesktopChatInput = memo(() => {
         <ChatInput
           footer={
             <ChatInputActionBar
-              left={<ActionBar />}
+              left={<div />}
               right={<SendArea />}
               style={{
                 paddingRight: 8,
@@ -73,10 +54,10 @@ const DesktopChatInput = memo(() => {
             />
           }
           fullscreen={expand}
-          header={showTypoBar && <TypoBar />}
+          header={<ChatInputActionBar left={<ActionBar />} />}
           slashMenuRef={slashMenuRef}
         >
-          <InputEditor />
+          <InputEditor defaultRows={1} />
           {expand && fileNode}
         </ChatInput>
       </Flexbox>

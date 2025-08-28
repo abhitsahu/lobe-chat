@@ -1,4 +1,5 @@
 import { useAnalytics } from '@lobehub/analytics/react';
+import { useToolbarState } from '@lobehub/editor';
 import { useCallback, useMemo } from 'react';
 
 import { useGeminiChineseWarning } from '@/hooks/useGeminiChineseWarning';
@@ -10,15 +11,22 @@ import { fileChatSelectors, useFileStore } from '@/store/file';
 import { getUserStoreState } from '@/store/user';
 import { SendMessageParams } from '@/types/message';
 
-export type UseSendMessageParams = Pick<
-  SendMessageParams,
-  'onlyAddUserMessage' | 'isWelcomeQuestion'
->;
+import { useChatInput } from './useChatInput';
 
-export const useSendMessage = () => {
-  const [sendMessage, updateInputMessage] = useChatStore((s) => [
-    s.sendMessage,
+export interface UseSendMessageParams
+  extends Pick<SendMessageParams, 'onlyAddUserMessage' | 'isWelcomeQuestion'> {
+  onlyAddAIMessage?: boolean;
+}
+
+export const useSend = () => {
+  const { editorRef, setExpand } = useChatInput();
+  const { isEmpty } = useToolbarState(editorRef);
+  const [updateInputMessage, sendMessage, addAIMessage, generating, stop] = useChatStore((s) => [
     s.updateInputMessage,
+    s.sendMessage,
+    s.addAIMessage,
+    chatSelectors.isAIGenerating(s),
+    s.stopGenerateMessage,
   ]);
   const { analytics } = useAnalytics();
   const checkGeminiChineseWarning = useGeminiChineseWarning();
@@ -28,7 +36,7 @@ export const useSendMessage = () => {
   const isUploadingFiles = useFileStore(fileChatSelectors.isUploadingFiles);
   const isSendButtonDisabledByMessage = useChatStore(chatSelectors.isSendButtonDisabledByMessage);
 
-  const canSend = !isUploadingFiles && !isSendButtonDisabledByMessage;
+  const canSend = !isEmpty && !isUploadingFiles && !isSendButtonDisabledByMessage;
 
   const send = useCallback(async (params: UseSendMessageParams = {}) => {
     const store = useChatStore.getState();
@@ -44,28 +52,45 @@ export const useSendMessage = () => {
     if (!canSend) return;
 
     const fileList = fileChatSelectors.chatUploadFileList(useFileStore.getState());
+
+    const inputMessage = String(
+      editorRef.current?.getDocument('markdown') || '',
+    ).trimEnd() as unknown as string;
+
     // if there is no message and no image, then we should not send the message
-    if (!store.inputMessage && fileList.length === 0) return;
+    if (!inputMessage && fileList.length === 0) return;
 
     // Check for Chinese text warning with Gemini model
     const agentStore = getAgentStoreState();
     const currentModel = agentSelectors.currentAgentModel(agentStore);
     const shouldContinue = await checkGeminiChineseWarning({
       model: currentModel,
-      prompt: store.inputMessage,
+      prompt: inputMessage,
       scenario: 'chat',
     });
 
     if (!shouldContinue) return;
 
-    sendMessage({
-      files: fileList,
-      message: store.inputMessage,
-      ...params,
-    });
+    // TODO: 移除 updateInputMessage
+    updateInputMessage(inputMessage);
+    if (params.onlyAddAIMessage) {
+      addAIMessage();
+    } else {
+      sendMessage({
+        files: fileList,
+        message: inputMessage,
+        ...params,
+      });
+    }
 
+
+
+    // TODO: 移除 updateInputMessage
     updateInputMessage('');
     clearChatUploadFileList();
+    setExpand?.(false);
+    editorRef.current?.setDocument('text', '');
+    editorRef.current?.focus();
 
     // 获取分析数据
     const userStore = getUserStoreState();
@@ -81,8 +106,8 @@ export const useSendMessage = () => {
         current_topic: topicSelectors.currentActiveTopic(store)?.title || null,
         has_attachments: fileList.length > 0,
         history_message_count: chatSelectors.activeBaseChats(store).length,
-        message: store.inputMessage,
-        message_length: store.inputMessage.length,
+        message: inputMessage,
+        message_length: inputMessage.length,
         message_type: messageType,
         selected_model: agentSelectors.currentAgentModel(agentStore),
         session_id: store.activeId || 'inbox', // 当前活跃的会话ID
@@ -98,5 +123,5 @@ export const useSendMessage = () => {
     // }
   }, []);
 
-  return useMemo(() => ({ canSend, send }), [canSend]);
+  return useMemo(() => ({ canSend, generating, send, stop }), [canSend, send, generating, stop]);
 };

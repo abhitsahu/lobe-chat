@@ -7,7 +7,7 @@ import { filesSelectors, useFileStore } from '@/store/file';
 
 import FileItem from './FileItem';
 
-const Files = memo(() => {
+const FilePreview = memo(() => {
   const list = useFileStore(filesSelectors.chatUploadFileList, isEqual);
 
   if (!list || list?.length === 0) return null;
@@ -30,4 +30,4 @@ const Files = memo(() => {
   );
 });
 
-export default Files;
+export default FilePreview;

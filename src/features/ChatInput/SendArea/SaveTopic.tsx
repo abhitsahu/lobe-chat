@@ -1,4 +1,4 @@
-import { ActionIcon, Button, Hotkey, Tooltip } from '@lobehub/ui';
+import { ActionIcon, Hotkey } from '@lobehub/ui';
 import { Popconfirm } from 'antd';
 import { LucideGalleryVerticalEnd, LucideMessageSquarePlus } from 'lucide-react';
 import { memo, useState } from 'react';
@@ -54,11 +54,22 @@ const SaveTopic = memo<{ mobile?: boolean }>(({ mobile }) => {
     );
   } else {
     return (
-      <Tooltip hotkey={hotkey} title={desc}>
-        <Button aria-label={desc} icon={icon} loading={isValidating} onClick={() => mutate()} />
-      </Tooltip>
+      <ActionIcon
+        aria-label={desc}
+        icon={icon}
+        loading={isValidating}
+        onClick={() => mutate()}
+        size={{ blockSize: 32, size: 16, strokeWidth: 2.3 }}
+        title={desc}
+        tooltipProps={{
+          hotkey,
+        }}
+        variant={'outlined'}
+      />
     );
   }
 });
+
+SaveTopic.displayName = 'SaveTopic';
 
 export default SaveTopic;
