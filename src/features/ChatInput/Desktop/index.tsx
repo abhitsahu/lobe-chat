@@ -74,8 +74,8 @@ const DesktopChatInput = memo(() => {
           header={showTypoBar && <TypoBar />}
           slashMenuRef={slashMenuRef}
         >
-          <InputEditor />
           {expand && fileNode}
+          <InputEditor />
         </ChatInput>
       </Flexbox>
     </>

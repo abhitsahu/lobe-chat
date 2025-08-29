@@ -15,7 +15,6 @@ import {
   ListOrderedIcon,
   SquareDashedBottomCodeIcon,
   StrikethroughIcon,
-  UnderlineIcon,
 } from 'lucide-react';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -48,13 +47,13 @@ const TypoBar = memo(() => {
                 label: t('typobar.italic'),
                 onClick: toolbarState.italic,
               },
-              {
-                active: toolbarState.isUnderline,
-                icon: UnderlineIcon,
-                key: 'underline',
-                label: t('typobar.underline'),
-                onClick: toolbarState.underline,
-              },
+              // {
+              //   active: toolbarState.isUnderline,
+              //   icon: UnderlineIcon,
+              //   key: 'underline',
+              //   label: t('typobar.underline'),
+              //   onClick: toolbarState.underline,
+              // },
               {
                 active: toolbarState.isStrikethrough,
                 icon: StrikethroughIcon,

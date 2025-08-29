@@ -24,7 +24,7 @@ const useStyles = createStyles(({ css, token }) => ({
     height: 100%;
     padding: 12px;
 
-    background: ${token.colorBgContainer};
+    background: ${token.colorBgLayout};
   `,
 }));
 
@@ -57,8 +57,8 @@ const DesktopChatInput = memo(() => {
           header={<ChatInputActionBar left={<ActionBar />} />}
           slashMenuRef={slashMenuRef}
         >
-          <InputEditor defaultRows={1} />
           {expand && fileNode}
+          <InputEditor defaultRows={1} />
         </ChatInput>
       </Flexbox>
     </>

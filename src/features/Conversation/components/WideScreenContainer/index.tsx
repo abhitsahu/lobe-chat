@@ -1,7 +1,7 @@
 'use client';
 
 import { createStyles } from 'antd-style';
-import { memo } from 'react';
+import { memo, useEffect } from 'react';
 import { Flexbox, FlexboxProps } from 'react-layout-kit';
 
 import { CONVERSATION_MIN_WIDTH } from '@/const/layoutTokens';
@@ -15,19 +15,29 @@ const useStyles = createStyles(({ css, token }) => ({
   `,
 }));
 
-const WideScreenContainer = memo<FlexboxProps>(({ children, className, ...rest }) => {
-  const { cx, styles } = useStyles();
-  const wideScreen = useGlobalStore(systemStatusSelectors.wideScreen);
+interface WideScreenContainerProps extends FlexboxProps {
+  onChange?: () => void;
+}
 
-  return (
-    <Flexbox
-      className={cx(styles.container, className)}
-      width={wideScreen ? '100%' : `min(${CONVERSATION_MIN_WIDTH}px, 100%)`}
-      {...rest}
-    >
-      {children}
-    </Flexbox>
-  );
-});
+const WideScreenContainer = memo<WideScreenContainerProps>(
+  ({ children, className, onChange, ...rest }) => {
+    const { cx, styles } = useStyles();
+    const wideScreen = useGlobalStore(systemStatusSelectors.wideScreen);
+
+    useEffect(() => {
+      onChange?.();
+    }, [wideScreen]);
+
+    return (
+      <Flexbox
+        className={cx(styles.container, className)}
+        width={wideScreen ? '100%' : `min(${CONVERSATION_MIN_WIDTH}px, 100%)`}
+        {...rest}
+      >
+        {children}
+      </Flexbox>
+    );
+  },
+);
 
 export default WideScreenContainer;

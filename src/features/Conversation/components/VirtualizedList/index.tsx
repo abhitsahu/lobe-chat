@@ -3,7 +3,7 @@
 import { Icon } from '@lobehub/ui';
 import { useTheme } from 'antd-style';
 import { Loader2Icon } from 'lucide-react';
-import React, { ReactNode, memo, useCallback, useEffect, useRef, useState } from 'react';
+import { ReactNode, forwardRef, memo, useCallback, useEffect, useRef, useState } from 'react';
 import { Center, Flexbox } from 'react-layout-kit';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
@@ -21,6 +21,14 @@ interface VirtualizedListProps {
   itemContent: (index: number, data: any, context: any) => ReactNode;
   mobile?: boolean;
 }
+
+const List = forwardRef(({ ...props }, ref) => {
+  return (
+    <Flexbox>
+      <WideScreenContainer id={'chatlist-list'} ref={ref} {...props} />
+    </Flexbox>
+  );
+});
 
 const VirtualizedList = memo<VirtualizedListProps>(({ mobile, dataSource, itemContent }) => {
   const virtuosoRef = useRef<VirtuosoHandle>(null);
@@ -71,11 +79,7 @@ const VirtualizedList = memo<VirtualizedListProps>(({ mobile, dataSource, itemCo
         atBottomStateChange={setAtBottom}
         atBottomThreshold={50 * (mobile ? 2 : 1)}
         components={{
-          List: (props) => (
-            <Flexbox flex={1} height={'100%'}>
-              <WideScreenContainer flex={1} height={'100%'} {...props} />
-            </Flexbox>
-          ),
+          List,
         }}
         computeItemKey={(_, item) => item}
         data={dataSource}
@@ -87,6 +91,13 @@ const VirtualizedList = memo<VirtualizedListProps>(({ mobile, dataSource, itemCo
         ref={virtuosoRef}
       />
       <WideScreenContainer
+        onChange={() => {
+          if (!atBottom) return;
+          setTimeout(() => {
+            const virtuoso = virtuosoRef.current;
+            virtuoso?.scrollToIndex({ align: 'end', behavior: 'auto', index: 'LAST' });
+          }, 100);
+        }}
         style={{
           position: 'relative',
         }}
