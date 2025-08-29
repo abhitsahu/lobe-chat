@@ -37,7 +37,7 @@ const HeaderAction = memo<{ className?: string }>(({ className }) => {
   return (
     <Flexbox className={className} gap={4} horizontal>
       <ActionIcon
-        icon={wideScreen ? PanelLeftRightDashedIcon : SquareChartGanttIcon}
+        icon={wideScreen ? SquareChartGanttIcon : PanelLeftRightDashedIcon}
         onClick={() => toggleWideScreen()}
         size={DESKTOP_HEADER_ICON_SIZE}
         title={t(wideScreen ? 'toggleWideScreen.off' : 'toggleWideScreen.on')}
