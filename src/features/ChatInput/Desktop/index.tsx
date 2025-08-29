@@ -18,12 +18,12 @@ import FilePreview from './FilePreview';
 const useStyles = createStyles(({ css, token }) => ({
   container: css`
     .show-on-hover {
-      display: none;
+      opacity: 0;
     }
 
     &:hover {
       .show-on-hover {
-        display: flex;
+        opacity: 1;
       }
     }
   `,
