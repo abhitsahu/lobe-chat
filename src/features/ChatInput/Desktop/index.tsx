@@ -2,11 +2,10 @@
 
 import { ChatInput, ChatInputActionBar } from '@lobehub/editor/react';
 import { createStyles } from 'antd-style';
-import { memo, useEffect } from 'react';
+import { memo } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
-import { useChatStore } from '@/store/chat';
-import { chatSelectors } from '@/store/chat/selectors';
+import { useAutoFocus } from '@/features/ChatInput/Desktop/useAutoFocus';
 
 import ActionBar from '../ActionBar';
 import InputEditor from '../InputEditor';
@@ -42,13 +41,10 @@ const useStyles = createStyles(({ css, token }) => ({
 
 const DesktopChatInput = memo(() => {
   const { slashMenuRef, expand, showTypoBar, editorRef, actions } = useChatInput();
-  const chatKey = useChatStore(chatSelectors.currentChatKey);
+
   const { styles, cx } = useStyles();
 
-  useEffect(() => {
-    if (!editorRef.current) return;
-    editorRef.current?.focus();
-  }, [chatKey]);
+  useAutoFocus(editorRef);
 
   const fileNode = actions.flat().includes('fileUpload') && <FilePreview />;
 
