@@ -1,5 +1,4 @@
 export * from './agent';
-export * from './aiModel';
 export * from './aiProvider';
 export * from './artifact';
 export * from './asyncTask';
