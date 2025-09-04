@@ -3,9 +3,9 @@ import { createStyles } from 'antd-style';
 import { memo } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
+import { useChatInputStore } from '@/features/ChatInput/store';
 import { fileChatSelectors, useFileStore } from '@/store/file';
 
-import { useChatInput } from '../../hooks/useChatInput';
 import FileItem from './FileItem';
 
 const useStyles = createStyles(({ css }) => ({
@@ -16,7 +16,8 @@ const useStyles = createStyles(({ css }) => ({
 }));
 
 const FileList = memo(() => {
-  const { expand } = useChatInput();
+  const expand = useChatInputStore((s) => s.expand);
+
   const inputFilesList = useFileStore(fileChatSelectors.chatUploadFileList);
   const showFileList = useFileStore(fileChatSelectors.chatUploadFileListHasItem);
   const { styles } = useStyles();

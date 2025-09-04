@@ -2,17 +2,18 @@
 
 import { ChatInput, ChatInputActionBar } from '@lobehub/editor/react';
 import { createStyles } from 'antd-style';
-import { memo } from 'react';
+import { memo, useEffect } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
-import { useAutoFocus } from '@/features/ChatInput/Desktop/useAutoFocus';
+import { useChatInputStore } from '@/features/ChatInput/store';
+import { useChatStore } from '@/store/chat';
+import { chatSelectors } from '@/store/chat/slices/message/selectors';
 
 import ActionBar from '../ActionBar';
 import InputEditor from '../InputEditor';
 import SendArea from '../SendArea';
 import ShortcutHint from '../SendArea/ShortcutHint';
 import TypoBar from '../TypoBar';
-import { useChatInput } from '../hooks/useChatInput';
 import FilePreview from './FilePreview';
 
 const useStyles = createStyles(({ css, token }) => ({
@@ -41,11 +42,21 @@ const useStyles = createStyles(({ css, token }) => ({
 }));
 
 const DesktopChatInput = memo<{ showFootnote?: boolean }>(({ showFootnote }) => {
-  const { slashMenuRef, expand, showTypoBar, editorRef, actions } = useChatInput();
+  const [slashMenuRef, expand, showTypoBar, editor, actions] = useChatInputStore((s) => [
+    s.slashMenuRef,
+    s.expand,
+    s.showTypoBar,
+    s.editor,
+    s.actions,
+  ]);
 
   const { styles, cx } = useStyles();
 
-  useAutoFocus(editorRef);
+  const chatKey = useChatStore(chatSelectors.currentChatKey);
+
+  useEffect(() => {
+    if (editor) editor.focus();
+  }, [chatKey, editor]);
 
   const fileNode = actions.flat().includes('fileUpload') && <FilePreview />;
 

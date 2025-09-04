@@ -3,8 +3,9 @@
 import { useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 
-import { useSend } from '@/features/ChatInput/hooks/useSend';
 import { useChatStore } from '@/store/chat';
+
+import { useSend } from '../useSend';
 
 const MessageFromUrl = () => {
   const updateInputMessage = useChatStore((s) => s.updateInputMessage);

@@ -14,17 +14,21 @@ import { useHotkeysContext } from 'react-hotkeys-hook';
 import { useTranslation } from 'react-i18next';
 
 import { isDesktop } from '@/const/version';
+import { useChatInputStore, useStoreApi } from '@/features/ChatInput/store';
 import { useUserStore } from '@/store/user';
 import { preferenceSelectors } from '@/store/user/selectors';
 import { HotkeyEnum } from '@/types/hotkey';
 import { isCommandPressed } from '@/utils/keyboard';
 
-import { useChatInput } from '../hooks/useChatInput';
-import { useSend } from '../hooks/useSend';
-
 const InputEditor = memo<{ defaultRows?: number }>(({ defaultRows = 2 }) => {
-  const { editorRef, slashMenuRef } = useChatInput();
-  const { send, canSend } = useSend();
+  const [editorRef, slashMenuRef, send, canSend] = useChatInputStore((s) => [
+    s.editorRef,
+    s.slashMenuRef,
+    s.handleSendButton,
+    s.sendButtonProps?.canSend,
+  ]);
+  const storeApi = useStoreApi();
+
   const state = useToolbarState(editorRef);
   const { enableScope, disableScope } = useHotkeysContext();
   const { t } = useTranslation(['editor', 'chat']);
@@ -46,6 +50,13 @@ const InputEditor = memo<{ defaultRows?: number }>(({ defaultRows = 2 }) => {
       window.removeEventListener('beforeunload', fn);
     };
   }, [state.isEmpty]);
+
+  // inject editor instance into store
+  useEffect(() => {
+    if (editorRef.current && !storeApi.getState().editor) {
+      storeApi.setState({ editor: editorRef.current });
+    }
+  }, [editorRef.current]);
 
   return (
     <Editor
@@ -83,9 +94,9 @@ const InputEditor = memo<{ defaultRows?: number }>(({ defaultRows = 2 }) => {
         const commandKey = isCommandPressed(e);
         // when user like cmd + enter to send message
         if (useCmdEnterToSend) {
-          if (commandKey) send();
+          if (commandKey) send?.();
         } else {
-          if (!commandKey) send();
+          if (!commandKey) send?.();
         }
       }}
       placeholder={t('sendPlaceholder', { ns: 'chat' })}

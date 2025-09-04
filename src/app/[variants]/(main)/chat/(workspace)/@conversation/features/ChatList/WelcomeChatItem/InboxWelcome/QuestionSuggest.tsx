@@ -11,8 +11,9 @@ import { Flexbox } from 'react-layout-kit';
 
 import { BRANDING_NAME } from '@/const/branding';
 import { USAGE_DOCUMENTS } from '@/const/url';
-import { useSend } from '@/features/ChatInput/hooks/useSend';
 import { useChatStore } from '@/store/chat';
+
+import { useSend } from '../../../ChatInput/useSend';
 
 const useStyles = createStyles(({ css, token, responsive }) => ({
   card: css`

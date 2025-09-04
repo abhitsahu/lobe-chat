@@ -2,7 +2,7 @@ import { ChatInputActions, type ChatInputActionsProps } from '@lobehub/editor/re
 import { memo, useMemo } from 'react';
 
 import { ActionKeys, actionMap } from '../ActionBar/config';
-import { useChatInput } from '../hooks/useChatInput';
+import { useChatInputStore } from '../store';
 
 const mapActionsToItems = (keys: ActionKeys[]): ChatInputActionsProps['items'] =>
   keys.map((actionKey, index) => {
@@ -35,7 +35,8 @@ const mapActionsToItems = (keys: ActionKeys[]): ChatInputActionsProps['items'] =
   });
 
 const ActionToolbar = memo(() => {
-  const { actions, mobile } = useChatInput();
+  const actions = useChatInputStore((s) => s.actions);
+  const mobile = useChatInputStore((s) => s.mobile);
   const items = useMemo(() => mapActionsToItems(actions), [actions]);
   return <ChatInputActions collapseOffset={mobile ? 48 : 80} items={items} />;
 });

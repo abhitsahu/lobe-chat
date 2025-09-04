@@ -6,10 +6,11 @@ import dynamic from 'next/dynamic';
 import { memo } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
+import { useChatInputStore } from '@/features/ChatInput/store';
+
 import ActionBar from '../ActionBar';
 import InputEditor from '../InputEditor';
 import SendArea from '../SendArea';
-import { useChatInput } from '../hooks/useChatInput';
 
 const FilePreview = dynamic(() => import('./FilePreview'), { ssr: false });
 
@@ -29,7 +30,8 @@ const useStyles = createStyles(({ css, token }) => ({
 }));
 
 const DesktopChatInput = memo(() => {
-  const { slashMenuRef, expand, actions } = useChatInput();
+  const [slashMenuRef, expand] = useChatInputStore((s) => [s.slashMenuRef, s.expand]);
+  const actions = useChatInputStore((s) => s.actions);
 
   const { styles, cx } = useStyles();
 

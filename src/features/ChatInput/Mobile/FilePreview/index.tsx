@@ -4,9 +4,9 @@ import isEqual from 'fast-deep-equal';
 import { memo } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
+import { useChatInputStore } from '@/features/ChatInput/store';
 import { filesSelectors, useFileStore } from '@/store/file';
 
-import { useChatInput } from '../../hooks/useChatInput';
 import FileItem from './FileItem';
 
 const useStyles = createStyles(({ css }) => ({
@@ -17,7 +17,7 @@ const useStyles = createStyles(({ css }) => ({
 }));
 
 const FilePreview = memo(() => {
-  const { expand } = useChatInput();
+  const expand = useChatInputStore((s) => s.expand);
   const list = useFileStore(filesSelectors.chatUploadFileList, isEqual);
   const { styles } = useStyles();
   if (!list || list?.length === 0) return null;

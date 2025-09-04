@@ -2,18 +2,18 @@ import { TypeIcon } from 'lucide-react';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { useChatInput } from '../../hooks/useChatInput';
+import { useChatInputStore } from '../../store';
 import Action from '../components/Action';
 
 const Typo = memo(() => {
   const { t } = useTranslation('editor');
-  const { showTypoBar, setShowTypoBar } = useChatInput();
+  const [showTypoBar, setShowTypoBar] = useChatInputStore((s) => [s.showTypoBar, s.setShowTypoBar]);
 
   return (
     <Action
       active={showTypoBar}
       icon={TypeIcon}
-      onClick={() => setShowTypoBar?.(!showTypoBar)}
+      onClick={() => setShowTypoBar(!showTypoBar)}
       title={t(showTypoBar ? 'actions.typobar.off' : 'actions.typobar.on')}
     />
   );

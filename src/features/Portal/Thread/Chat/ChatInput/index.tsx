@@ -48,7 +48,7 @@ const Desktop = memo(() => {
         </Flexbox>
       )}
 
-      <ChatInputProvider actions={threadActions} sendAction={sendAction}>
+      <ChatInputProvider actions={threadActions} sendButtonProps={sendAction}>
         <DesktopChatInput />
       </ChatInputProvider>
     </WideScreenContainer>

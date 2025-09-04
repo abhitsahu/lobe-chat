@@ -2,6 +2,7 @@ import { useAnalytics } from '@lobehub/analytics/react';
 import { useToolbarState } from '@lobehub/editor';
 import { useCallback, useMemo, useState } from 'react';
 
+import { useChatInputStore } from '@/features/ChatInput/store';
 import { useGeminiChineseWarning } from '@/hooks/useGeminiChineseWarning';
 import { getAgentStoreState } from '@/store/agent';
 import { agentSelectors } from '@/store/agent/selectors';
@@ -9,19 +10,17 @@ import { useChatStore } from '@/store/chat';
 import { chatSelectors, topicSelectors } from '@/store/chat/selectors';
 import { fileChatSelectors, useFileStore } from '@/store/file';
 import { getUserStoreState } from '@/store/user';
-import { SendMessageParams } from '@/types/message';
 
-import { useChatInput } from './useChatInput';
-
-export interface UseSendMessageParams
-  extends Pick<SendMessageParams, 'onlyAddUserMessage' | 'isWelcomeQuestion'> {
+export interface UseSendMessageParams {
+  isWelcomeQuestion?: boolean;
   onlyAddAIMessage?: boolean;
+  onlyAddUserMessage?: boolean;
 }
 
 export const useSend = () => {
   const [loading, setLoading] = useState(false);
-  const { editorRef, setExpand } = useChatInput();
-  const { isEmpty } = useToolbarState(editorRef);
+  // const [editorRef, setExpand] = useChatInputStore((s) => [s.editorRef, s.setExpand]);
+  // const { isEmpty } = useToolbarState(editorRef);
   const [updateInputMessage, sendMessage, addAIMessage, generating, stop] = useChatStore((s) => [
     s.updateInputMessage,
     s.sendMessage,
@@ -37,8 +36,7 @@ export const useSend = () => {
   const isUploadingFiles = useFileStore(fileChatSelectors.isUploadingFiles);
   const isSendButtonDisabledByMessage = useChatStore(chatSelectors.isSendButtonDisabledByMessage);
 
-  const canSend =
-    (!isEmpty || fileList.length > 0) && !isUploadingFiles && !isSendButtonDisabledByMessage;
+  const canSend = fileList.length > 0 && !isUploadingFiles && !isSendButtonDisabledByMessage;
 
   const handleSend = useCallback(
     async (params: UseSendMessageParams = {}) => {
