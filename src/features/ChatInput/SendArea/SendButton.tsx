@@ -24,9 +24,11 @@ const SendButton = memo(() => {
     s.updatePreference,
   ]);
 
+  const disabled = !generating && !canSend;
+
   return (
     <Send
-      disabled={!generating && !canSend}
+      disabled={disabled}
       generating={generating}
       loading={loading}
       menu={
@@ -77,6 +79,7 @@ const SendButton = memo(() => {
                 },
                 { type: 'divider' },
                 {
+                  disabled,
                   icon: <Icon icon={BotMessageSquare} />,
                   key: 'addAi',
                   label: t('input.addAi'),
@@ -85,6 +88,7 @@ const SendButton = memo(() => {
                   },
                 },
                 {
+                  disabled,
                   icon: <Icon icon={MessageSquarePlus} />,
                   key: 'addUser',
                   label: (
