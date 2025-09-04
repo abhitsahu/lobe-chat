@@ -5,28 +5,30 @@ import { ActionKeys, actionMap } from '../ActionBar/config';
 import { useChatInput } from '../hooks/useChatInput';
 
 const mapActionsToItems = (keys: ActionKeys[]): ChatInputActionsProps['items'] =>
-  keys.map((item) => {
-    if (typeof item === 'string') {
-      if (item === '---') {
+  keys.map((actionKey, index) => {
+    if (typeof actionKey === 'string') {
+      if (actionKey === '---') {
         return {
+          key: `divider-${index}`,
           type: 'divider',
         };
       }
-      const Render = actionMap[item];
+      const Render = actionMap[actionKey];
       return {
-        alwaysDisplay: item === 'mainToken',
-        children: <Render />,
-        key: item,
+        alwaysDisplay: actionKey === 'mainToken',
+        children: <Render key={actionKey} />,
+        key: actionKey,
       };
     } else {
       return {
-        children: item.map((i) => {
-          const Render = actionMap[i];
+        children: actionKey.map((groupActionKey) => {
+          const Render = actionMap[groupActionKey];
           return {
-            children: <Render />,
-            key: i,
+            children: <Render key={groupActionKey} />,
+            key: groupActionKey,
           };
         }),
+        key: `group-${index}`,
         type: 'collapse',
       };
     }
