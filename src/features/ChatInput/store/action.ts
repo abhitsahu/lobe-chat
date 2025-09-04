@@ -6,6 +6,7 @@ import { PublicState, State, initialState } from './initialState';
 
 export interface Action {
   handleSendButton: () => void;
+  handleStop: () => void;
   setExpand: (expend: boolean) => void;
   setShowTypoBar: (show: boolean) => void;
 }
@@ -23,10 +24,15 @@ export const store: CreateStore = (initState) => (set, get) => ({
   ...initState,
 
   handleSendButton: () => {
-    console.log('editor:', get().editor);
     if (!get().editor) return;
 
-    get().sendButtonProps?.send({ editor: get().editor! });
+    get().onSend?.({ editor: get().editor! });
+  },
+
+  handleStop: () => {
+    if (!get().editor) return;
+
+    get().sendButtonProps?.onStop?.({ editor: get().editor! });
   },
 
   setExpand: (expand) => {

@@ -6,21 +6,21 @@ import { RefObject } from 'react';
 import { ActionKeys } from '@/features/ChatInput';
 
 export type SendButtonHandler = (params: { editor: IEditor }) => void;
+
 export interface SendButtonProps {
   canSend: boolean;
   generating: boolean;
   loading: boolean;
   menuItems?: ItemType[];
-  send: SendButtonHandler;
+  onStop: (params: { editor: IEditor }) => void;
   shape?: 'round' | 'circle';
-  stop: () => void;
 }
+
 export const initialSendButtonState: SendButtonProps = {
   canSend: false,
   generating: false,
   loading: false,
-  send: () => {},
-  stop: () => {},
+  onStop: () => {},
 };
 
 export interface PublicState {
@@ -28,6 +28,7 @@ export interface PublicState {
   allowExpand?: boolean;
   expand?: boolean;
   mobile?: boolean;
+  onSend?: SendButtonHandler;
   sendButtonProps?: SendButtonProps;
   showTypoBar?: boolean;
 }

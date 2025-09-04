@@ -40,6 +40,9 @@ const Desktop = memo(() => {
   return (
     <ChatInputProvider
       actions={actions}
+      onSend={(params) => {
+        console.log('onSend', params.editor);
+      }}
       sendButtonProps={{
         canSend,
         generating,
@@ -111,8 +114,7 @@ const Desktop = memo(() => {
             },
           },
         ],
-        send,
-        stop,
+        onStop: stop,
       }}
     >
       <WideScreenContainer>

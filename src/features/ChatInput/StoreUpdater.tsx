@@ -10,17 +10,21 @@ export interface StoreUpdaterProps extends Partial<PublicState> {
   editorRef?: ForwardedRef<IEditor | null>;
 }
 
-const StoreUpdater = memo<StoreUpdaterProps>(({ editorRef, mobile, sendButtonProps, actions }) => {
-  const storeApi = useStoreApi();
-  const useStoreUpdater = createStoreUpdater(storeApi);
+const StoreUpdater = memo<StoreUpdaterProps>(
+  ({ editorRef, mobile, sendButtonProps, actions, onSend }) => {
+    const storeApi = useStoreApi();
+    const useStoreUpdater = createStoreUpdater(storeApi);
 
-  useStoreUpdater('mobile', mobile);
-  useStoreUpdater('sendButtonProps', sendButtonProps);
-  useStoreUpdater('actions', actions);
+    useStoreUpdater('mobile', mobile);
+    useStoreUpdater('actions', actions);
 
-  useImperativeHandle(editorRef, () => storeApi.getState().editor!);
+    useStoreUpdater('sendButtonProps', sendButtonProps);
+    useStoreUpdater('onSend', onSend);
 
-  return null;
-});
+    useImperativeHandle(editorRef, () => storeApi.getState().editor!);
+
+    return null;
+  },
+);
 
 export default StoreUpdater;

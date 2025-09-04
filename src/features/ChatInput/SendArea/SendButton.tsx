@@ -6,11 +6,11 @@ import { selectors, useChatInputStore } from '../store';
 
 const SendButton = memo(() => {
   const mobile = useChatInputStore((s) => s.mobile);
-  const { canSend, generating, stop, loading, menuItems } = useChatInputStore(
+  const { canSend, generating, loading, menuItems } = useChatInputStore(
     selectors.sendButtonProps,
     isEqual,
   );
-  const send = useChatInputStore((s) => s.handleSendButton);
+  const [send, handleStop] = useChatInputStore((s) => [s.handleSendButton, s.handleStop]);
 
   const disabled = !generating && !canSend;
 
@@ -21,7 +21,7 @@ const SendButton = memo(() => {
       loading={loading}
       menu={!mobile && menuItems ? { items: menuItems } : undefined}
       onClick={() => send()}
-      onStop={() => stop()}
+      onStop={() => handleStop()}
       placement={'topRight'}
       trigger={['hover']}
     />
