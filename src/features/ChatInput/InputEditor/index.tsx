@@ -13,6 +13,7 @@ import { memo, useEffect, useRef } from 'react';
 import { useHotkeysContext } from 'react-hotkeys-hook';
 import { useTranslation } from 'react-i18next';
 
+import { isDesktop } from '@/const/version';
 import { useUserStore } from '@/store/user';
 import { preferenceSelectors } from '@/store/user/selectors';
 import { HotkeyEnum } from '@/types/hotkey';
@@ -37,7 +38,7 @@ const InputEditor = memo<{ defaultRows?: number }>(({ defaultRows = 2 }) => {
       if (!state.isEmpty) {
         // set returnValue to trigger alert modal
         // Note: No matter what value is set, the browser will display the standard text
-        e.returnValue = '你有正在输入中的内容，确定要离开吗？';
+        e.returnValue = 'You are typing something, are you sure you want to leave?';
       }
     };
     window.addEventListener('beforeunload', fn);
@@ -59,6 +60,20 @@ const InputEditor = memo<{ defaultRows?: number }>(({ defaultRows = 2 }) => {
       }}
       onCompositionStart={() => {
         isChineseInput.current = true;
+      }}
+      onContextMenu={async ({ event: e, editor }) => {
+        if (isDesktop) {
+          e.preventDefault();
+          const { electronSystemService } = await import('@/services/electron/system');
+
+          const selectionValue = editor.getSelectionDocument('markdown') as unknown as string;
+          const hasSelection = !!selectionValue;
+
+          await electronSystemService.showContextMenu('editor', {
+            hasSelection,
+            value: selectionValue,
+          });
+        }
       }}
       onFocus={() => {
         enableScope(HotkeyEnum.AddUserMessage);
@@ -101,21 +116,6 @@ const InputEditor = memo<{ defaultRows?: number }>(({ defaultRows = 2 }) => {
       }}
       type={'text'}
       variant={'chat'}
-
-      // TODO: enable context menu when electron support is ready
-      // onContextMenu={async ({ event: e }) => {
-      //   if (isDesktop) {
-      //     e.preventDefault();
-      //     const textArea = ref.current?.getRootElement();
-      //     const hasSelection = textArea && textArea.selectionStart !== textArea.selectionEnd;
-      //     const { electronSystemService } = await import('@/services/electron/system');
-      //
-      //     electronSystemService.showContextMenu('editor', {
-      //       hasSelection: !!hasSelection,
-      //       value: value,
-      //     });
-      //   }
-      // }}
     />
   );
 });
