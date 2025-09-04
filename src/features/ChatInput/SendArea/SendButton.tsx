@@ -15,7 +15,7 @@ import { useSend } from '../hooks/useSend';
 const SendButton = memo(() => {
   const { t } = useTranslation('chat');
   const { mobile } = useChatInput();
-  const { send, canSend, generating, stop } = useSend();
+  const { send, canSend, generating, stop, loading } = useSend();
 
   const hotkey = useUserStore(settingsSelectors.getHotkeyById(HotkeyEnum.AddUserMessage));
 
@@ -28,6 +28,7 @@ const SendButton = memo(() => {
     <Send
       disabled={!generating && !canSend}
       generating={generating}
+      loading={loading}
       menu={
         mobile
           ? undefined

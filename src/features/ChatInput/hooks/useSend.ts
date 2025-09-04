@@ -1,6 +1,6 @@
 import { useAnalytics } from '@lobehub/analytics/react';
 import { useToolbarState } from '@lobehub/editor';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import { useGeminiChineseWarning } from '@/hooks/useGeminiChineseWarning';
 import { getAgentStoreState } from '@/store/agent';
@@ -19,6 +19,7 @@ export interface UseSendMessageParams
 }
 
 export const useSend = () => {
+  const [loading, setLoading] = useState(false);
   const { editorRef, setExpand } = useChatInput();
   const { isEmpty } = useToolbarState(editorRef);
   const [updateInputMessage, sendMessage, addAIMessage, generating, stop] = useChatStore((s) => [
@@ -39,79 +40,92 @@ export const useSend = () => {
   const canSend =
     (!isEmpty || fileList.length > 0) && !isUploadingFiles && !isSendButtonDisabledByMessage;
 
-  const send = useCallback(async (params: UseSendMessageParams = {}) => {
-    if (!canSend) return;
-    const store = useChatStore.getState();
-    if (chatSelectors.isAIGenerating(store)) return;
-    const inputMessage = String(
-      editorRef.current?.getDocument('markdown') || '',
-    ).trimEnd() as unknown as string;
+  const handleSend = useCallback(
+    async (params: UseSendMessageParams = {}) => {
+      if (!canSend) return;
+      const store = useChatStore.getState();
+      if (chatSelectors.isAIGenerating(store)) return;
+      const inputMessage = String(
+        editorRef.current?.getDocument('markdown') || '',
+      ).trimEnd() as unknown as string;
 
-    // if there is no message and no image, then we should not send the message
-    if (!inputMessage && fileList.length === 0) return;
+      // if there is no message and no image, then we should not send the message
+      if (!inputMessage && fileList.length === 0) return;
 
-    // Check for Chinese text warning with Gemini model
-    const agentStore = getAgentStoreState();
-    const currentModel = agentSelectors.currentAgentModel(agentStore);
-    const shouldContinue = await checkGeminiChineseWarning({
-      model: currentModel,
-      prompt: inputMessage,
-      scenario: 'chat',
-    });
-
-    if (!shouldContinue) return;
-
-    // TODO: 移除 updateInputMessage
-    updateInputMessage(inputMessage);
-    if (params.onlyAddAIMessage) {
-      addAIMessage();
-    } else {
-      sendMessage({
-        files: fileList,
-        message: inputMessage,
-        ...params,
+      // Check for Chinese text warning with Gemini model
+      const agentStore = getAgentStoreState();
+      const currentModel = agentSelectors.currentAgentModel(agentStore);
+      const shouldContinue = await checkGeminiChineseWarning({
+        model: currentModel,
+        prompt: inputMessage,
+        scenario: 'chat',
       });
-    }
 
+      if (!shouldContinue) return;
 
+      // TODO: 移除 updateInputMessage
+      updateInputMessage(inputMessage);
+      if (params.onlyAddAIMessage) {
+        addAIMessage();
+      } else {
+        sendMessage({
+          files: fileList,
+          message: inputMessage,
+          ...params,
+        });
+      }
 
-    // TODO: 移除 updateInputMessage
-    updateInputMessage('');
-    clearChatUploadFileList();
-    setExpand?.(false);
-    editorRef.current?.setDocument('text', '');
-    editorRef.current?.focus();
+      // TODO: 移除 updateInputMessage
+      updateInputMessage('');
+      clearChatUploadFileList();
+      setExpand?.(false);
+      editorRef.current?.setDocument('text', '');
+      editorRef.current?.focus();
 
-    // 获取分析数据
-    const userStore = getUserStoreState();
+      // 获取分析数据
+      const userStore = getUserStoreState();
 
-    // 直接使用现有数据结构判断消息类型
-    const hasImages = fileList.some((file) => file.file?.type?.startsWith('image'));
-    const messageType = fileList.length === 0 ? 'text' : hasImages ? 'image' : 'file';
+      // 直接使用现有数据结构判断消息类型
+      const hasImages = fileList.some((file) => file.file?.type?.startsWith('image'));
+      const messageType = fileList.length === 0 ? 'text' : hasImages ? 'image' : 'file';
 
-    analytics?.track({
-      name: 'send_message',
-      properties: {
-        chat_id: store.activeId || 'unknown',
-        current_topic: topicSelectors.currentActiveTopic(store)?.title || null,
-        has_attachments: fileList.length > 0,
-        history_message_count: chatSelectors.activeBaseChats(store).length,
-        message: inputMessage,
-        message_length: inputMessage.length,
-        message_type: messageType,
-        selected_model: agentSelectors.currentAgentModel(agentStore),
-        session_id: store.activeId || 'inbox', // 当前活跃的会话ID
-        user_id: userStore.user?.id || 'anonymous',
-      },
-    });
-    // const hasSystemRole = agentSelectors.hasSystemRole(useAgentStore.getState());
-    // const agentSetting = useAgentStore.getState().agentSettingInstance;
+      analytics?.track({
+        name: 'send_message',
+        properties: {
+          chat_id: store.activeId || 'unknown',
+          current_topic: topicSelectors.currentActiveTopic(store)?.title || null,
+          has_attachments: fileList.length > 0,
+          history_message_count: chatSelectors.activeBaseChats(store).length,
+          message: inputMessage,
+          message_length: inputMessage.length,
+          message_type: messageType,
+          selected_model: agentSelectors.currentAgentModel(agentStore),
+          session_id: store.activeId || 'inbox', // 当前活跃的会话ID
+          user_id: userStore.user?.id || 'anonymous',
+        },
+      });
+      // const hasSystemRole = agentSelectors.hasSystemRole(useAgentStore.getState());
+      // const agentSetting = useAgentStore.getState().agentSettingInstance;
 
-    // // if there is a system role, then we need to use agent setting instance to autocomplete agent meta
-    // if (hasSystemRole && !!agentSetting) {
-    //   agentSetting.autocompleteAllMeta();
-    // }
-  }, [canSend]);
+      // // if there is a system role, then we need to use agent setting instance to autocomplete agent meta
+      // if (hasSystemRole && !!agentSetting) {
+      //   agentSetting.autocompleteAllMeta();
+      // }
+    },
+    [canSend],
+  );
 
-  return useMemo(() => ({ canSend, generating, send, stop }), [canSend, send, generating, stop]);
+  const send = useCallback(
+    async (params: UseSendMessageParams = {}) => {
+      setLoading(true);
+      await handleSend(params);
+      setLoading(false);
+    },
+    [handleSend],
+  );
+
+  return useMemo(
+    () => ({ canSend, generating, loading, send, stop }),
+    [canSend, send, generating, stop, loading],
+  );
 };
