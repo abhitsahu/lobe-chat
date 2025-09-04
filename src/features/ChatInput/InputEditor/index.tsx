@@ -82,8 +82,8 @@ const InputEditor = memo<{ defaultRows?: number }>(({ defaultRows = 2 }) => {
         if (!canSend || e.altKey || e.shiftKey || isChineseInput.current) return;
         const commandKey = isCommandPressed(e);
         // when user like cmd + enter to send message
-        if (commandKey) {
-          if (useCmdEnterToSend) send();
+        if (useCmdEnterToSend) {
+          if (commandKey) send();
         } else {
           send();
         }
