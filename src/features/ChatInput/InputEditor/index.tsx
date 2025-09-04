@@ -85,7 +85,7 @@ const InputEditor = memo<{ defaultRows?: number }>(({ defaultRows = 2 }) => {
         if (useCmdEnterToSend) {
           if (commandKey) send();
         } else {
-          send();
+          if (!commandKey) send();
         }
       }}
       placeholder={t('sendPlaceholder', { ns: 'chat' })}
