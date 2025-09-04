@@ -1,38 +1,44 @@
 'use client';
 
+import { SendMessageParams } from '@lobechat/types';
 import type { IEditor } from '@lobehub/editor';
 import { type ChatInputProps, useEditor } from '@lobehub/editor/react';
 import { type ReactNode, RefObject, createContext, use, useRef, useState } from 'react';
 
-import { ActionKeys } from '@/features/ChatInput/ActionBar/config';
+import { ActionKeys } from '../ActionBar/config';
 
-export interface ChatInputProviderConfig {
+interface SendAction {
+  canSend: boolean;
+  send: (params: SendMessageParams) => void;
+}
+
+export interface ChatInputProviderState {
   actions: ActionKeys[];
   allowExpand?: boolean;
   editorRef: RefObject<IEditor | null>;
   expand?: boolean;
   mobile?: boolean;
+  sendAction?: SendAction;
   setExpand?: (expend: boolean) => void;
   setShowTypoBar?: (show: boolean) => void;
   showTypoBar?: boolean;
   slashMenuRef: ChatInputProps['slashMenuRef'];
 }
 
-const defaultValue: ChatInputProviderConfig = {
+const defaultValue: ChatInputProviderState = {
   actions: [],
   allowExpand: true,
   editorRef: { current: null },
   slashMenuRef: { current: null },
 };
 
-const ChatInputContext = createContext<ChatInputProviderConfig>(defaultValue);
+const ChatInputContext = createContext<ChatInputProviderState>(defaultValue);
 
-export interface ChatInputProviderProps {
+export interface ChatInputProviderProps extends Partial<ChatInputProviderState> {
   children: ReactNode;
-  config?: Partial<ChatInputProviderConfig>;
 }
 
-export const ChatInputProvider = ({ children, config = {} }: ChatInputProviderProps) => {
+export const ChatInputProvider = ({ children, ...config }: ChatInputProviderProps) => {
   const slashMenuRef = useRef<HTMLDivElement>(null);
   const editorRef = useEditor();
   const [expand, setExpand] = useState(config?.expand || false);
@@ -49,7 +55,7 @@ export const ChatInputProvider = ({ children, config = {} }: ChatInputProviderPr
           setShowTypoBar,
           showTypoBar,
           slashMenuRef,
-        } as ChatInputProviderConfig
+        } as ChatInputProviderState
       }
     >
       {children}
@@ -57,7 +63,7 @@ export const ChatInputProvider = ({ children, config = {} }: ChatInputProviderPr
   );
 };
 
-export const useChatInput = (): ChatInputProviderConfig => {
+export const useChatInput = (): ChatInputProviderState => {
   return use(ChatInputContext);
 };
 

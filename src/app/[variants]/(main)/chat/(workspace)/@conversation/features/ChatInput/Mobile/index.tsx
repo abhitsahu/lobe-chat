@@ -2,26 +2,26 @@
 
 import { memo } from 'react';
 
-import ChatInput from '@/features/ChatInput/Mobile';
-import { ChatInputProvider } from '@/features/ChatInput/hooks/useChatInput';
+import {
+  type ActionKeys,
+  MobileChatInput as ChatInput,
+  ChatInputProvider,
+} from '@/features/ChatInput';
+
+const actions: ActionKeys[] = [
+  'model',
+  'search',
+  'fileUpload',
+  'knowledgeBase',
+  'tools',
+  '---',
+  ['params', 'history', 'stt', 'clear'],
+  'mainToken',
+];
 
 const MobileChatInput = memo(() => {
   return (
-    <ChatInputProvider
-      config={{
-        actions: [
-          'model',
-          'search',
-          'fileUpload',
-          'knowledgeBase',
-          'tools',
-          '---',
-          ['params', 'history', 'stt', 'clear'],
-          'mainToken',
-        ],
-        mobile: true,
-      }}
-    >
+    <ChatInputProvider actions={actions} mobile>
       <ChatInput />
     </ChatInputProvider>
   );

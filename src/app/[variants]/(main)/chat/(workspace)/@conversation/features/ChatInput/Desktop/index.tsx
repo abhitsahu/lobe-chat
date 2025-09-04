@@ -2,27 +2,24 @@
 
 import { memo } from 'react';
 
-import DesktopChatInput from '@/features/ChatInput/Desktop';
-import { ChatInputProvider } from '@/features/ChatInput/hooks/useChatInput';
+import { type ActionKeys, ChatInputProvider, DesktopChatInput } from '@/features/ChatInput';
 import WideScreenContainer from '@/features/Conversation/components/WideScreenContainer';
+
+const actions: ActionKeys[] = [
+  'model',
+  'search',
+  'typo',
+  'fileUpload',
+  'knowledgeBase',
+  'tools',
+  '---',
+  ['params', 'history', 'stt', 'clear'],
+  'mainToken',
+];
 
 const Desktop = memo(() => {
   return (
-    <ChatInputProvider
-      config={{
-        actions: [
-          'model',
-          'search',
-          'typo',
-          'fileUpload',
-          'knowledgeBase',
-          'tools',
-          '---',
-          ['params', 'history', 'stt', 'clear'],
-          'mainToken',
-        ],
-      }}
-    >
+    <ChatInputProvider actions={actions}>
       <WideScreenContainer>
         <DesktopChatInput />
       </WideScreenContainer>

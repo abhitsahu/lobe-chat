@@ -6,11 +6,14 @@ import { memo } from 'react';
 import { Trans } from 'react-i18next';
 import { Flexbox } from 'react-layout-kit';
 
-import DesktopChatInput from '@/features/ChatInput/Desktop';
-import { ChatInputProvider } from '@/features/ChatInput/hooks/useChatInput';
+import { type ActionKeys, ChatInputProvider, DesktopChatInput } from '@/features/ChatInput';
 import WideScreenContainer from '@/features/Conversation/components/WideScreenContainer';
 import { useGlobalStore } from '@/store/global';
 import { systemStatusSelectors } from '@/store/global/selectors';
+
+import { useSendThreadMessage } from './useSend';
+
+const threadActions: ActionKeys[] = ['typo', 'stt', 'portalToken'];
 
 const Desktop = memo(() => {
   const [hideThreadLimitAlert, updateSystemStatus] = useGlobalStore((s) => [
@@ -18,7 +21,7 @@ const Desktop = memo(() => {
     s.updateSystemStatus,
   ]);
 
-  // TODO: 修复一下话题的发送
+  const sendAction = useSendThreadMessage();
 
   return (
     <WideScreenContainer>
@@ -45,11 +48,7 @@ const Desktop = memo(() => {
         </Flexbox>
       )}
 
-      <ChatInputProvider
-        config={{
-          actions: ['typo', 'stt', 'portalToken'],
-        }}
-      >
+      <ChatInputProvider actions={threadActions} sendAction={sendAction}>
         <DesktopChatInput />
       </ChatInputProvider>
     </WideScreenContainer>
