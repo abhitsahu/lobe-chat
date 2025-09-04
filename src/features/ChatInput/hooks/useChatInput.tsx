@@ -34,8 +34,13 @@ const defaultValue: ChatInputProviderState = {
 
 const ChatInputContext = createContext<ChatInputProviderState>(defaultValue);
 
-export interface ChatInputProviderProps extends Partial<ChatInputProviderState> {
+export interface ChatInputProviderProps {
+  actions: ActionKeys[];
   children: ReactNode;
+  expand?: boolean;
+  mobile?: boolean;
+  sendAction?: SendAction;
+  showTypoBar?: boolean;
 }
 
 export const ChatInputProvider = ({ children, ...config }: ChatInputProviderProps) => {
@@ -43,6 +48,7 @@ export const ChatInputProvider = ({ children, ...config }: ChatInputProviderProp
   const editorRef = useEditor();
   const [expand, setExpand] = useState(config?.expand || false);
   const [showTypoBar, setShowTypoBar] = useState(config?.showTypoBar || false);
+
   return (
     <ChatInputContext.Provider
       value={
