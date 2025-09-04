@@ -98,7 +98,7 @@ const TypoBar = memo(() => {
                 label: t('typobar.code'),
                 onClick: toolbarState.code,
               },
-              !toolbarState.isInCodeblock && {
+              {
                 icon: SquareDashedBottomCodeIcon,
                 key: 'codeblock',
                 label: t('typobar.codeblock'),

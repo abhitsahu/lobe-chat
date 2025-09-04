@@ -10,6 +10,7 @@ import { useAutoFocus } from '@/features/ChatInput/Desktop/useAutoFocus';
 import ActionBar from '../ActionBar';
 import InputEditor from '../InputEditor';
 import SendArea from '../SendArea';
+import ShortcutHint from '../SendArea/ShortcutHint';
 import TypoBar from '../TypoBar';
 import { useChatInput } from '../hooks/useChatInput';
 import FilePreview from './FilePreview';
@@ -39,7 +40,7 @@ const useStyles = createStyles(({ css, token }) => ({
   `,
 }));
 
-const DesktopChatInput = memo(() => {
+const DesktopChatInput = memo<{ showFootnote?: boolean }>(({ showFootnote }) => {
   const { slashMenuRef, expand, showTypoBar, editorRef, actions } = useChatInput();
 
   const { styles, cx } = useStyles();
@@ -53,7 +54,7 @@ const DesktopChatInput = memo(() => {
       {!expand && fileNode}
       <Flexbox
         className={cx(styles.container, expand && styles.fullscreen)}
-        paddingBlock={'0 12px'}
+        paddingBlock={showFootnote ? 0 : '0 12px'}
         paddingInline={12}
       >
         <ChatInput
@@ -73,6 +74,7 @@ const DesktopChatInput = memo(() => {
           {expand && fileNode}
           <InputEditor />
         </ChatInput>
+        {showFootnote && !expand && <ShortcutHint />}
       </Flexbox>
     </>
   );
