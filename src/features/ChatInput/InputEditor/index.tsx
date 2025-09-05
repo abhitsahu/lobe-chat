@@ -5,9 +5,8 @@ import {
   ReactLinkPlugin,
   ReactListPlugin,
   ReactTablePlugin,
-  useToolbarState,
 } from '@lobehub/editor';
-import { Editor, SlashMenu } from '@lobehub/editor/react';
+import { Editor, SlashMenu, useEditorState } from '@lobehub/editor/react';
 import { Table2Icon } from 'lucide-react';
 import { memo, useEffect, useRef } from 'react';
 import { useHotkeysContext } from 'react-hotkeys-hook';
@@ -29,7 +28,7 @@ const InputEditor = memo<{ defaultRows?: number }>(({ defaultRows = 2 }) => {
   ]);
   const storeApi = useStoreApi();
 
-  const state = useToolbarState(editorRef);
+  const state = useEditorState(editorRef);
   const { enableScope, disableScope } = useHotkeysContext();
   const { t } = useTranslation(['editor', 'chat']);
 

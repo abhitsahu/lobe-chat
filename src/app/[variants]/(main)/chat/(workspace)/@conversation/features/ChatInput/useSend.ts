@@ -1,8 +1,6 @@
 import { useAnalytics } from '@lobehub/analytics/react';
-import { useToolbarState } from '@lobehub/editor';
 import { useCallback, useMemo, useState } from 'react';
 
-import { useChatInputStore } from '@/features/ChatInput/store';
 import { useGeminiChineseWarning } from '@/hooks/useGeminiChineseWarning';
 import { getAgentStoreState } from '@/store/agent';
 import { agentSelectors } from '@/store/agent/selectors';

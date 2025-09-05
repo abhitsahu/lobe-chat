@@ -1,4 +1,4 @@
-import { useToolbarState } from '@lobehub/editor';
+import { useEditorState } from '@lobehub/editor/react';
 import {
   ChatInputActionBar,
   ChatInputActions,
@@ -24,7 +24,7 @@ import { useChatInputStore } from '@/features/ChatInput/store';
 const TypoBar = memo(() => {
   const { t } = useTranslation('editor');
   const editorRef = useChatInputStore((s) => s.editorRef);
-  const toolbarState = useToolbarState(editorRef);
+  const toolbarState = useEditorState(editorRef);
   const theme = useTheme();
 
   return (
