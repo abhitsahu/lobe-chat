@@ -1,3 +1,4 @@
+import isEqual from 'fast-deep-equal';
 import { memo, useMemo } from 'react';
 import { Flexbox } from 'react-layout-kit';
 
@@ -14,8 +15,12 @@ const mapActionsToItems = (keys: ActionKey[]) =>
 
 const SendArea = memo(() => {
   const allowExpand = useChatInputStore((s) => s.allowExpand);
-  const rightActions = useChatInputStore((s) => s.rightActions);
-  const items = useMemo(() => mapActionsToItems(rightActions as ActionKey[]), [rightActions]);
+  const rightActions = useChatInputStore((s) => s.rightActions, isEqual);
+
+  const items = useMemo(
+    () => mapActionsToItems((rightActions as ActionKey[]) || []),
+    [rightActions],
+  );
 
   return (
     <Flexbox align={'center'} flex={'none'} gap={6} horizontal>

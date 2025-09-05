@@ -9,7 +9,7 @@ interface ChatInputProviderProps extends StoreUpdaterProps {
 }
 
 export const ChatInputProvider = memo<ChatInputProviderProps>(
-  ({ children, leftActions, rightActions, mobile, sendButtonProps, onSend }) => {
+  ({ children, leftActions, rightActions, mobile, sendButtonProps, onSend, sendMenu }) => {
     const editorRef = useEditor();
     const slashMenuRef = useRef<HTMLDivElement>(null);
 
@@ -23,6 +23,7 @@ export const ChatInputProvider = memo<ChatInputProviderProps>(
             onSend,
             rightActions,
             sendButtonProps,
+            sendMenu,
             slashMenuRef,
           })
         }
@@ -33,6 +34,7 @@ export const ChatInputProvider = memo<ChatInputProviderProps>(
           onSend={onSend}
           rightActions={rightActions}
           sendButtonProps={sendButtonProps}
+          sendMenu={sendMenu}
         />
         {children}
       </Provider>
