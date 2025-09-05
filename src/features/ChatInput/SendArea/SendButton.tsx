@@ -5,11 +5,8 @@ import { memo } from 'react';
 import { selectors, useChatInputStore } from '../store';
 
 const SendButton = memo(() => {
-  const mobile = useChatInputStore((s) => s.mobile);
-  const { canSend, generating, loading, menuItems } = useChatInputStore(
-    selectors.sendButtonProps,
-    isEqual,
-  );
+  const sendMenu = useChatInputStore((s) => s.sendMenu);
+  const { canSend, generating, loading } = useChatInputStore(selectors.sendButtonProps, isEqual);
   const [send, handleStop] = useChatInputStore((s) => [s.handleSendButton, s.handleStop]);
 
   const disabled = !generating && !canSend;
@@ -19,7 +16,7 @@ const SendButton = memo(() => {
       disabled={disabled}
       generating={generating}
       loading={loading}
-      menu={!mobile && menuItems ? { items: menuItems } : undefined}
+      menu={sendMenu as any}
       onClick={() => send()}
       onStop={() => handleStop()}
       placement={'topRight'}

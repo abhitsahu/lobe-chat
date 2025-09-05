@@ -9,20 +9,29 @@ interface ChatInputProviderProps extends StoreUpdaterProps {
 }
 
 export const ChatInputProvider = memo<ChatInputProviderProps>(
-  ({ children, actions, mobile, sendButtonProps, onSend }) => {
+  ({ children, leftActions, rightActions, mobile, sendButtonProps, onSend }) => {
     const editorRef = useEditor();
     const slashMenuRef = useRef<HTMLDivElement>(null);
 
     return (
       <Provider
         createStore={() =>
-          createStore({ actions, editorRef, mobile, onSend, sendButtonProps, slashMenuRef })
+          createStore({
+            editorRef,
+            leftActions,
+            mobile,
+            onSend,
+            rightActions,
+            sendButtonProps,
+            slashMenuRef,
+          })
         }
       >
         <StoreUpdater
-          actions={actions}
+          leftActions={leftActions}
           mobile={mobile}
           onSend={onSend}
+          rightActions={rightActions}
           sendButtonProps={sendButtonProps}
         />
         {children}

@@ -4,6 +4,7 @@ import Knowledge from './Knowledge';
 import Model from './Model';
 import Params from './Params';
 import STT from './STT';
+import SaveTopic from './SaveTopic';
 import Search from './Search';
 import { MainToken, PortalToken } from './Token';
 import Tools from './Tools';
@@ -19,6 +20,7 @@ export const actionMap = {
   model: Model,
   params: Params,
   portalToken: PortalToken,
+  saveTopic: SaveTopic,
   search: Search,
   stt: STT,
   temperature: Params,
@@ -26,6 +28,6 @@ export const actionMap = {
   typo: Typo,
 } as const;
 
-type ActionKey = keyof typeof actionMap;
+export type ActionKey = keyof typeof actionMap;
 
 export type ActionKeys = ActionKey | ActionKey[] | '---';

@@ -35,9 +35,9 @@ const mapActionsToItems = (keys: ActionKeys[]): ChatInputActionsProps['items'] =
   });
 
 const ActionToolbar = memo(() => {
-  const actions = useChatInputStore((s) => s.actions);
+  const leftActions = useChatInputStore((s) => s.leftActions);
   const mobile = useChatInputStore((s) => s.mobile);
-  const items = useMemo(() => mapActionsToItems(actions), [actions]);
+  const items = useMemo(() => mapActionsToItems(leftActions), [leftActions]);
   return <ChatInputActions collapseOffset={mobile ? 48 : 80} items={items} />;
 });
 

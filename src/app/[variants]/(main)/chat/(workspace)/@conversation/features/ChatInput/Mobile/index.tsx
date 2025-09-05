@@ -3,12 +3,15 @@
 import { memo } from 'react';
 
 import {
+  type ActionKey,
   type ActionKeys,
   MobileChatInput as ChatInput,
   ChatInputProvider,
 } from '@/features/ChatInput';
 
-const actions: ActionKeys[] = [
+import { useSend } from '../useSend';
+
+const leftActions: ActionKeys[] = [
   'model',
   'search',
   'fileUpload',
@@ -19,9 +22,23 @@ const actions: ActionKeys[] = [
   'mainToken',
 ];
 
+const rightActions: ActionKey[] = ['saveTopic'];
+
 const MobileChatInput = memo(() => {
+  const { send, loading, canSend, generating } = useSend();
   return (
-    <ChatInputProvider actions={actions} mobile>
+    <ChatInputProvider
+      leftActions={leftActions}
+      mobile
+      rightActions={rightActions}
+      sendAction={{
+        canSend,
+        generating,
+        loading,
+        send,
+        stop,
+      }}
+    >
       <ChatInput />
     </ChatInputProvider>
   );

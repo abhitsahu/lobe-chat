@@ -7,7 +7,7 @@ import { Flexbox } from 'react-layout-kit';
 
 import { useChatInputStore } from '@/features/ChatInput/store';
 import { useChatStore } from '@/store/chat';
-import { chatSelectors } from '@/store/chat/slices/message/selectors';
+import { chatSelectors } from '@/store/chat/selectors';
 
 import ActionBar from '../ActionBar';
 import InputEditor from '../InputEditor';
@@ -42,12 +42,12 @@ const useStyles = createStyles(({ css, token }) => ({
 }));
 
 const DesktopChatInput = memo<{ showFootnote?: boolean }>(({ showFootnote }) => {
-  const [slashMenuRef, expand, showTypoBar, editor, actions] = useChatInputStore((s) => [
+  const [slashMenuRef, expand, showTypoBar, editor, leftActions] = useChatInputStore((s) => [
     s.slashMenuRef,
     s.expand,
     s.showTypoBar,
     s.editor,
-    s.actions,
+    s.leftActions,
   ]);
 
   const { styles, cx } = useStyles();
@@ -58,7 +58,7 @@ const DesktopChatInput = memo<{ showFootnote?: boolean }>(({ showFootnote }) => 
     if (editor) editor.focus();
   }, [chatKey, editor]);
 
-  const fileNode = actions.flat().includes('fileUpload') && <FilePreview />;
+  const fileNode = leftActions.flat().includes('fileUpload') && <FilePreview />;
 
   return (
     <>

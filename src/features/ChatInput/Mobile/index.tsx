@@ -31,11 +31,11 @@ const useStyles = createStyles(({ css, token }) => ({
 
 const DesktopChatInput = memo(() => {
   const [slashMenuRef, expand] = useChatInputStore((s) => [s.slashMenuRef, s.expand]);
-  const actions = useChatInputStore((s) => s.actions);
+  const leftActions = useChatInputStore((s) => s.leftActions);
 
   const { styles, cx } = useStyles();
 
-  const fileNode = actions.flat().includes('fileUpload') && <FilePreview />;
+  const fileNode = leftActions.flat().includes('fileUpload') && <FilePreview />;
 
   return (
     <>

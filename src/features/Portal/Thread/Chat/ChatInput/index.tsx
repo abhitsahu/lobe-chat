@@ -49,7 +49,7 @@ const Desktop = memo(() => {
       )}
 
       <ChatInputProvider
-        actions={threadActions}
+        leftActions={threadActions}
         onSend={(params) => {
           sendAction.send();
         }}

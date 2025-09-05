@@ -11,12 +11,13 @@ export interface StoreUpdaterProps extends Partial<PublicState> {
 }
 
 const StoreUpdater = memo<StoreUpdaterProps>(
-  ({ editorRef, mobile, sendButtonProps, actions, onSend }) => {
+  ({ editorRef, mobile, sendButtonProps, leftActions, rightActions, onSend }) => {
     const storeApi = useStoreApi();
     const useStoreUpdater = createStoreUpdater(storeApi);
 
     useStoreUpdater('mobile', mobile);
-    useStoreUpdater('actions', actions);
+    useStoreUpdater('leftActions', leftActions);
+    useStoreUpdater('rightActions', rightActions);
 
     useStoreUpdater('sendButtonProps', sendButtonProps);
     useStoreUpdater('onSend', onSend);

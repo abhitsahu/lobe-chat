@@ -1,5 +1,6 @@
 import type { IEditor } from '@lobehub/editor';
 import type { ChatInputProps } from '@lobehub/editor/react';
+import type { MenuProps } from '@lobehub/ui/es/Menu';
 import type { ItemType } from 'antd/lib/menu/interface';
 import { RefObject } from 'react';
 
@@ -24,12 +25,14 @@ export const initialSendButtonState: SendButtonProps = {
 };
 
 export interface PublicState {
-  actions: ActionKeys[];
   allowExpand?: boolean;
   expand?: boolean;
+  leftActions: ActionKeys[];
   mobile?: boolean;
   onSend?: SendButtonHandler;
+  rightActions: ActionKeys[];
   sendButtonProps?: SendButtonProps;
+  sendMenu?: MenuProps;
   showTypoBar?: boolean;
 }
 
@@ -43,10 +46,11 @@ export interface State extends PublicState {
 }
 
 export const initialState: State = {
-  actions: [],
   allowExpand: true,
   editor: null,
   editorRef: { current: null },
   expand: false,
+  leftActions: [],
+  rightActions: [],
   slashMenuRef: { current: null },
 };

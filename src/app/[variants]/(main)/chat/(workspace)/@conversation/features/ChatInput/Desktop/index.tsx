@@ -16,7 +16,7 @@ import { HotkeyEnum, KeyEnum } from '@/types/hotkey';
 import { useSend } from '../useSend';
 import MessageFromUrl from './MessageFromUrl';
 
-const actions: ActionKeys[] = [
+const leftActions: ActionKeys[] = [
   'model',
   'search',
   'typo',
@@ -28,26 +28,32 @@ const actions: ActionKeys[] = [
   'mainToken',
 ];
 
+const rightActions: ActionKeys[] = ['saveTopic'];
+
 const Desktop = memo(() => {
   const { t } = useTranslation('chat');
-  const hotkey = useUserStore(settingsSelectors.getHotkeyById(HotkeyEnum.AddUserMessage));
-
+  const { send, loading, canSend, generating } = useSend();
   const [useCmdEnterToSend, updatePreference] = useUserStore((s) => [
     preferenceSelectors.useCmdEnterToSend(s),
     s.updatePreference,
   ]);
-  const { send, canSend, generating, stop, loading } = useSend();
+  const hotkey = useUserStore(settingsSelectors.getHotkeyById(HotkeyEnum.AddUserMessage));
+
   return (
     <ChatInputProvider
-      actions={actions}
+      leftActions={leftActions}
       onSend={(params) => {
         console.log('onSend', params.editor);
       }}
+      rightActions={rightActions}
       sendButtonProps={{
         canSend,
         generating,
         loading,
-        menuItems: [
+        onStop: stop,
+      }}
+      sendMenu={{
+        items: [
           {
             icon: !useCmdEnterToSend ? <Icon icon={LucideCheck} /> : <div />,
             key: 'sendWithEnter',
@@ -114,7 +120,6 @@ const Desktop = memo(() => {
             },
           },
         ],
-        onStop: stop,
       }}
     >
       <WideScreenContainer>
