@@ -8,6 +8,7 @@ import { Flexbox } from 'react-layout-kit';
 
 import { type ActionKeys, ChatInputProvider, DesktopChatInput } from '@/features/ChatInput';
 import WideScreenContainer from '@/features/Conversation/components/WideScreenContainer';
+import { useChatStore } from '@/store/chat';
 import { useUserStore } from '@/store/user';
 import { preferenceSelectors } from '@/store/user/slices/preference/selectors';
 import { settingsSelectors } from '@/store/user/slices/settings/selectors';
@@ -32,22 +33,27 @@ const rightActions: ActionKeys[] = ['saveTopic'];
 
 const Desktop = memo(() => {
   const { t } = useTranslation('chat');
-  const { send, loading, canSend, generating } = useSend();
+  const { send, loading, canNotSend, generating } = useSend();
   const [useCmdEnterToSend, updatePreference] = useUserStore((s) => [
     preferenceSelectors.useCmdEnterToSend(s),
     s.updatePreference,
   ]);
+
   const hotkey = useUserStore(settingsSelectors.getHotkeyById(HotkeyEnum.AddUserMessage));
 
   return (
     <ChatInputProvider
+      editorRef={(instance) => {
+        if (!instance) return;
+        useChatStore.setState({ mainInputEditor: instance });
+      }}
       leftActions={leftActions}
-      onSend={(params) => {
-        console.log('onSend', params.editor);
+      onSend={() => {
+        send();
       }}
       rightActions={rightActions}
       sendButtonProps={{
-        canSend,
+        disabled: canNotSend,
         generating,
         loading,
         onStop: stop,

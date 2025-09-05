@@ -1,3 +1,6 @@
+import { isDesktop } from '@lobechat/const';
+import { HotkeyEnum } from '@lobechat/types';
+import { isCommandPressed } from '@lobechat/utils';
 import {
   INSERT_TABLE_COMMAND,
   ReactCodeblockPlugin,
@@ -12,19 +15,16 @@ import { memo, useEffect, useRef } from 'react';
 import { useHotkeysContext } from 'react-hotkeys-hook';
 import { useTranslation } from 'react-i18next';
 
-import { isDesktop } from '@/const/version';
 import { useChatInputStore, useStoreApi } from '@/features/ChatInput/store';
 import { useUserStore } from '@/store/user';
 import { preferenceSelectors } from '@/store/user/selectors';
-import { HotkeyEnum } from '@/types/hotkey';
-import { isCommandPressed } from '@/utils/keyboard';
 
 const InputEditor = memo<{ defaultRows?: number }>(({ defaultRows = 2 }) => {
-  const [editorRef, slashMenuRef, send, canSend] = useChatInputStore((s) => [
+  const [editorRef, slashMenuRef, send] = useChatInputStore((s) => [
     s.editorRef,
     s.slashMenuRef,
     s.handleSendButton,
-    s.sendButtonProps?.canSend,
+    s.sendButtonProps?.disabled,
   ]);
   const storeApi = useStoreApi();
 
@@ -89,7 +89,7 @@ const InputEditor = memo<{ defaultRows?: number }>(({ defaultRows = 2 }) => {
         enableScope(HotkeyEnum.AddUserMessage);
       }}
       onPressEnter={({ event: e }) => {
-        if (!canSend || e.altKey || e.shiftKey || isChineseInput.current) return;
+        if (e.altKey || e.shiftKey || isChineseInput.current) return;
         const commandKey = isCommandPressed(e);
         // when user like cmd + enter to send message
         if (useCmdEnterToSend) {

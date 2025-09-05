@@ -17,33 +17,47 @@ export interface UseSendMessageParams {
 
 export const useSend = () => {
   const [loading, setLoading] = useState(false);
-  // const [editorRef, setExpand] = useChatInputStore((s) => [s.editorRef, s.setExpand]);
-  // const { isEmpty } = useToolbarState(editorRef);
-  const [updateInputMessage, sendMessage, addAIMessage, generating, stop] = useChatStore((s) => [
+  const [
+    updateInputMessage,
+    sendMessage,
+    addAIMessage,
+    stop,
+    generating,
+    isSendButtonDisabledByMessage,
+  ] = useChatStore((s) => [
     s.updateInputMessage,
     s.sendMessage,
     s.addAIMessage,
-    chatSelectors.isAIGenerating(s),
     s.stopGenerateMessage,
+    chatSelectors.isAIGenerating(s),
+    chatSelectors.isSendButtonDisabledByMessage(s),
   ]);
   const { analytics } = useAnalytics();
   const checkGeminiChineseWarning = useGeminiChineseWarning();
 
-  const clearChatUploadFileList = useFileStore((s) => s.clearChatUploadFileList);
   const fileList = fileChatSelectors.chatUploadFileList(useFileStore.getState());
-  const isUploadingFiles = useFileStore(fileChatSelectors.isUploadingFiles);
-  const isSendButtonDisabledByMessage = useChatStore(chatSelectors.isSendButtonDisabledByMessage);
+  const [isUploadingFiles, clearChatUploadFileList] = useFileStore((s) => [
+    fileChatSelectors.isUploadingFiles(s),
+    s.clearChatUploadFileList,
+  ]);
 
-  const canSend = fileList.length > 0 && !isUploadingFiles && !isSendButtonDisabledByMessage;
+  const canNotSend = isUploadingFiles || isSendButtonDisabledByMessage;
 
   const handleSend = useCallback(
     async (params: UseSendMessageParams = {}) => {
-      if (!canSend) return;
+      if (canNotSend) return;
+
       const store = useChatStore.getState();
+      const mainInputEditor = store.mainInputEditor;
+
+      if (!mainInputEditor) {
+        console.warn('not found mainInputEditor instance');
+        return;
+      }
+
       if (chatSelectors.isAIGenerating(store)) return;
-      const inputMessage = String(
-        editorRef.current?.getDocument('markdown') || '',
-      ).trimEnd() as unknown as string;
+
+      const inputMessage = mainInputEditor.getMarkdownContent();
 
       // if there is no message and no image, then we should not send the message
       if (!inputMessage && fileList.length === 0) return;
@@ -59,24 +73,18 @@ export const useSend = () => {
 
       if (!shouldContinue) return;
 
-      // TODO: 移除 updateInputMessage
       updateInputMessage(inputMessage);
       if (params.onlyAddAIMessage) {
         addAIMessage();
       } else {
-        sendMessage({
-          files: fileList,
-          message: inputMessage,
-          ...params,
-        });
+        sendMessage({ files: fileList, message: inputMessage, ...params });
       }
 
-      // TODO: 移除 updateInputMessage
       updateInputMessage('');
       clearChatUploadFileList();
-      setExpand?.(false);
-      editorRef.current?.setDocument('text', '');
-      editorRef.current?.focus();
+      mainInputEditor.setExpand(false);
+      mainInputEditor.clearContent();
+      mainInputEditor.focus();
 
       // 获取分析数据
       const userStore = getUserStoreState();
@@ -100,15 +108,8 @@ export const useSend = () => {
           user_id: userStore.user?.id || 'anonymous',
         },
       });
-      // const hasSystemRole = agentSelectors.hasSystemRole(useAgentStore.getState());
-      // const agentSetting = useAgentStore.getState().agentSettingInstance;
-
-      // // if there is a system role, then we need to use agent setting instance to autocomplete agent meta
-      // if (hasSystemRole && !!agentSetting) {
-      //   agentSetting.autocompleteAllMeta();
-      // }
     },
-    [canSend],
+    [canNotSend],
   );
 
   const send = useCallback(
@@ -121,7 +122,7 @@ export const useSend = () => {
   );
 
   return useMemo(
-    () => ({ canSend, generating, loading, send, stop }),
-    [canSend, send, generating, stop, loading],
+    () => ({ canNotSend, generating, loading, send, stop }),
+    [canNotSend, generating, stop, loading],
   );
 };

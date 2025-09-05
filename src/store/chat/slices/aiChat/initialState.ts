@@ -1,3 +1,5 @@
+import type { ChatInputEditor } from '@/features/ChatInput';
+
 export interface ChatAIChatState {
   /**
    * is the AI message is generating
@@ -6,6 +8,7 @@ export interface ChatAIChatState {
   chatLoadingIdsAbortController?: AbortController;
   inputFiles: File[];
   inputMessage: string;
+  mainInputEditor: ChatInputEditor | null;
   messageInToolsCallingIds: string[];
   /**
    * is the message is in RAG flow
@@ -17,6 +20,7 @@ export interface ChatAIChatState {
    */
   reasoningLoadingIds: string[];
   searchWorkflowLoadingIds: string[];
+  threadInputEditor: ChatInputEditor | null;
   /**
    * the tool calling stream ids
    */
@@ -27,10 +31,12 @@ export const initialAiChatState: ChatAIChatState = {
   chatLoadingIds: [],
   inputFiles: [],
   inputMessage: '',
+  mainInputEditor: null,
   messageInToolsCallingIds: [],
   messageRAGLoadingIds: [],
   pluginApiLoadingIds: [],
   reasoningLoadingIds: [],
   searchWorkflowLoadingIds: [],
+  threadInputEditor: null,
   toolCallingStreamIds: {},
 };

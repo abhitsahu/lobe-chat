@@ -25,19 +25,19 @@ const leftActions: ActionKeys[] = [
 const rightActions: ActionKey[] = ['saveTopic'];
 
 const MobileChatInput = memo(() => {
-  const { send, loading, canSend, generating } = useSend();
+  const { send, loading, canNotSend, generating } = useSend();
 
   return (
     <ChatInputProvider
       leftActions={leftActions}
       mobile
-      onSend={send}
+      onSend={() => send()}
       rightActions={rightActions}
       sendButtonProps={{
-        canSend,
+        disabled: canNotSend,
         generating,
         loading,
-        stop,
+        onStop: stop,
       }}
     >
       <ChatInput />

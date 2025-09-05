@@ -1,19 +1,20 @@
 'use client';
 
-import type { IEditor } from '@lobehub/editor';
 import { ForwardedRef, memo, useImperativeHandle } from 'react';
 import { createStoreUpdater } from 'zustand-utils';
 
+import { ChatInputEditor, useChatInputEditor } from './hooks/useChatInputEditor';
 import { PublicState, useStoreApi } from './store';
 
 export interface StoreUpdaterProps extends Partial<PublicState> {
-  editorRef?: ForwardedRef<IEditor | null>;
+  editorRef?: ForwardedRef<ChatInputEditor | null>;
 }
 
 const StoreUpdater = memo<StoreUpdaterProps>(
   ({ editorRef, mobile, sendButtonProps, leftActions, rightActions, onSend }) => {
     const storeApi = useStoreApi();
     const useStoreUpdater = createStoreUpdater(storeApi);
+    const editor = useChatInputEditor();
 
     useStoreUpdater('mobile', mobile);
     useStoreUpdater('leftActions', leftActions);
@@ -22,7 +23,7 @@ const StoreUpdater = memo<StoreUpdaterProps>(
     useStoreUpdater('sendButtonProps', sendButtonProps);
     useStoreUpdater('onSend', onSend);
 
-    useImperativeHandle(editorRef, () => storeApi.getState().editor!);
+    useImperativeHandle(editorRef, () => editor);
 
     return null;
   },

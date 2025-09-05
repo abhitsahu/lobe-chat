@@ -1,24 +1,26 @@
 import type { IEditor } from '@lobehub/editor';
 import type { ChatInputProps } from '@lobehub/editor/react';
 import type { MenuProps } from '@lobehub/ui/es/Menu';
-import type { ItemType } from 'antd/lib/menu/interface';
 import { RefObject } from 'react';
 
 import { ActionKeys } from '@/features/ChatInput';
 
-export type SendButtonHandler = (params: { editor: IEditor }) => void;
+export type SendButtonHandler = (params: {
+  clearContent: () => void;
+  editor: IEditor;
+  getMarkdownContent: () => string;
+}) => Promise<void> | void;
 
 export interface SendButtonProps {
-  canSend: boolean;
+  disabled?: boolean;
   generating: boolean;
   loading: boolean;
-  menuItems?: ItemType[];
   onStop: (params: { editor: IEditor }) => void;
-  shape?: 'round' | 'circle';
+  shape?: 'round' | 'default';
 }
 
 export const initialSendButtonState: SendButtonProps = {
-  canSend: false,
+  disabled: false,
   generating: false,
   loading: false,
   onStop: () => {},

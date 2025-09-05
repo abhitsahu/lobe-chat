@@ -1,10 +1,11 @@
 import { StateCreator } from 'zustand/vanilla';
 
-import { setNamespace } from '@/utils/storeDebug';
 
 import { PublicState, State, initialState } from './initialState';
 
 export interface Action {
+  clearContent: () => void;
+  getMarkdownContent: () => string;
   handleSendButton: () => void;
   handleStop: () => void;
   setExpand: (expend: boolean) => void;
@@ -13,20 +14,32 @@ export interface Action {
 
 export type Store = Action & State;
 
-const t = setNamespace('ChatInput');
+// const t = setNamespace('ChatInput');
 
 type CreateStore = (
   initState?: Partial<PublicState>,
 ) => StateCreator<Store, [['zustand/devtools', never]]>;
 
-export const store: CreateStore = (initState) => (set, get) => ({
+export const store: CreateStore = (publicState) => (set, get) => ({
   ...initialState,
-  ...initState,
+  ...publicState,
+
+  clearContent: () => {
+    get().editor?.setDocument('text', '');
+  },
+
+  getMarkdownContent: () => {
+    return String(get().editor?.getDocument('markdown') || '').trimEnd();
+  },
 
   handleSendButton: () => {
     if (!get().editor) return;
 
-    get().onSend?.({ editor: get().editor! });
+    get().onSend?.({
+      clearContent: get().clearContent,
+      editor: get().editor!,
+      getMarkdownContent: get().getMarkdownContent,
+    });
   },
 
   handleStop: () => {

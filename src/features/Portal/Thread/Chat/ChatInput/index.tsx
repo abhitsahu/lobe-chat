@@ -8,6 +8,7 @@ import { Flexbox } from 'react-layout-kit';
 
 import { type ActionKeys, ChatInputProvider, DesktopChatInput } from '@/features/ChatInput';
 import WideScreenContainer from '@/features/Conversation/components/WideScreenContainer';
+import { useChatStore } from '@/store/chat';
 import { useGlobalStore } from '@/store/global';
 import { systemStatusSelectors } from '@/store/global/selectors';
 
@@ -21,7 +22,7 @@ const Desktop = memo(() => {
     s.updateSystemStatus,
   ]);
 
-  const sendAction = useSendThreadMessage();
+  const { send, loading, disabled, generating, stop } = useSendThreadMessage();
 
   return (
     <WideScreenContainer>
@@ -49,11 +50,21 @@ const Desktop = memo(() => {
       )}
 
       <ChatInputProvider
-        leftActions={threadActions}
-        onSend={(params) => {
-          sendAction.send();
+        editorRef={(instance) => {
+          if (!instance) return;
+          useChatStore.setState({ threadInputEditor: instance });
         }}
-        sendButtonProps={sendAction}
+        leftActions={threadActions}
+        onSend={() => {
+          send();
+        }}
+        sendButtonProps={{
+          disabled,
+          generating,
+          loading,
+          onStop: stop,
+          shape: 'round',
+        }}
       >
         <DesktopChatInput />
       </ChatInputProvider>
