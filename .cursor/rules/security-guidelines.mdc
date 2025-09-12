@@ -1,0 +1,463 @@
+---
+description: Security guidelines and best practices for LobeChat
+alwaysApply: true
+---
+
+# 🔒 Security Guidelines
+
+## Overview
+LobeChat handles sensitive data including API keys, user conversations, and personal information. This guide covers security best practices and implementation patterns.
+
+## 🛡️ Authentication & Authorization
+
+### User Authentication
+```typescript
+// Use Auth.js for secure authentication
+import { NextAuth } from 'next-auth';
+import { authOptions } from './auth-options';
+
+export const auth = NextAuth(authOptions);
+
+// Protect API routes
+export const withAuth = (handler: NextApiHandler) => {
+  return async (req: NextApiRequest, res: NextApiResponse) => {
+    const session = await getServerSession(req, res, authOptions);
+    
+    if (!session) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
+    return handler(req, res);
+  };
+};
+```
+
+### Role-Based Access Control
+```typescript
+// Define user roles
+export enum UserRole {
+  ADMIN = 'admin',
+  USER = 'user',
+  GUEST = 'guest',
+}
+
+// Check permissions
+export const hasPermission = (user: User, permission: string) => {
+  const userPermissions = getUserPermissions(user.role);
+  return userPermissions.includes(permission);
+};
+
+// Protect sensitive operations
+export const requirePermission = (permission: string) => {
+  return (req: NextApiRequest, res: NextApiResponse, next: NextFunction) => {
+    const user = req.user;
+    
+    if (!hasPermission(user, permission)) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    
+    next();
+  };
+};
+```
+
+## 🔐 Data Protection
+
+### Input Validation
+```typescript
+// Use Zod for input validation
+import { z } from 'zod';
+
+const messageSchema = z.object({
+  content: z.string()
+    .min(1, 'Message cannot be empty')
+    .max(10000, 'Message too long')
+    .regex(/^[^<>]*$/, 'Invalid characters detected'),
+  
+  sessionId: z.string().uuid('Invalid session ID'),
+  
+  metadata: z.object({
+    source: z.enum(['user', 'system', 'assistant']),
+    timestamp: z.number().positive(),
+  }).optional(),
+});
+
+// Validate API inputs
+export const validateMessage = (data: unknown) => {
+  try {
+    return messageSchema.parse(data);
+  } catch (error) {
+    throw new Error('Invalid message data');
+  }
+};
+```
+
+### SQL Injection Prevention
+```typescript
+// Use parameterized queries with Drizzle
+export const getMessagesBySession = async (sessionId: string) => {
+  // ✅ Safe - uses parameterized query
+  return await db
+    .select()
+    .from(messages)
+    .where(eq(messages.sessionId, sessionId));
+};
+
+// ❌ Dangerous - direct string concatenation
+// const query = `SELECT * FROM messages WHERE session_id = '${sessionId}'`;
+```
+
+### XSS Prevention
+```typescript
+// Sanitize user input
+import DOMPurify from 'dompurify';
+
+export const sanitizeHtml = (html: string) => {
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'code', 'pre'],
+    ALLOWED_ATTR: [],
+  });
+};
+
+// Use React's built-in XSS protection
+export const SafeMessage = ({ content }: { content: string }) => {
+  const sanitizedContent = sanitizeHtml(content);
+  
+  return (
+    <div
+      dangerouslySetInnerHTML={{ __html: sanitizedContent }}
+    />
+  );
+};
+```
+
+## 🔑 API Security
+
+### Rate Limiting
+```typescript
+// Implement rate limiting
+import rateLimit from 'express-rate-limit';
+
+export const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Apply to API routes
+export default withAuth(apiLimiter(handler));
+```
+
+### CORS Configuration
+```typescript
+// Configure CORS properly
+import cors from 'cors';
+
+const corsOptions = {
+  origin: (origin: string, callback: Function) => {
+    const allowedOrigins = [
+      'https://yourdomain.com',
+      'https://app.yourdomain.com',
+    ];
+    
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  optionsSuccessStatus: 200,
+};
+
+export const corsMiddleware = cors(corsOptions);
+```
+
+### API Key Management
+```typescript
+// Secure API key storage
+export const getApiKey = (provider: string) => {
+  const key = process.env[`${provider.toUpperCase()}_API_KEY`];
+  
+  if (!key) {
+    throw new Error(`API key for ${provider} not found`);
+  }
+  
+  return key;
+};
+
+// Mask API keys in logs
+export const maskApiKey = (key: string) => {
+  if (key.length <= 8) return '***';
+  return key.substring(0, 4) + '***' + key.substring(key.length - 4);
+};
+```
+
+## 🗄️ Database Security
+
+### Connection Security
+```typescript
+// Use SSL for database connections
+const dbConfig = {
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  database: process.env.DB_NAME,
+  username: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  ssl: {
+    rejectUnauthorized: true,
+    ca: process.env.DB_SSL_CA,
+  },
+};
+```
+
+### Data Encryption
+```typescript
+// Encrypt sensitive data
+import crypto from 'crypto';
+
+const algorithm = 'aes-256-gcm';
+const secretKey = process.env.ENCRYPTION_KEY;
+
+export const encrypt = (text: string) => {
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipher(algorithm, secretKey);
+  
+  let encrypted = cipher.update(text, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  
+  return {
+    encrypted,
+    iv: iv.toString('hex'),
+  };
+};
+
+export const decrypt = (encryptedData: { encrypted: string; iv: string }) => {
+  const decipher = crypto.createDecipher(algorithm, secretKey);
+  decipher.setIV(Buffer.from(encryptedData.iv, 'hex'));
+  
+  let decrypted = decipher.update(encryptedData.encrypted, 'hex', 'utf8');
+  decrypted += decipher.final('utf8');
+  
+  return decrypted;
+};
+```
+
+### Audit Logging
+```typescript
+// Log security events
+export const auditLog = {
+  login: (userId: string, ip: string) => {
+    console.log(`[AUDIT] User ${userId} logged in from ${ip}`);
+  },
+  
+  apiAccess: (userId: string, endpoint: string, method: string) => {
+    console.log(`[AUDIT] User ${userId} accessed ${method} ${endpoint}`);
+  },
+  
+  dataAccess: (userId: string, resource: string, action: string) => {
+    console.log(`[AUDIT] User ${userId} ${action} ${resource}`);
+  },
+};
+```
+
+## 🌐 Client-Side Security
+
+### Content Security Policy
+```typescript
+// next.config.ts
+const nextConfig = {
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: https:",
+              "connect-src 'self' https://api.openai.com",
+            ].join('; '),
+          },
+        ],
+      },
+    ];
+  },
+};
+```
+
+### Secure Storage
+```typescript
+// Use secure storage for sensitive data
+export const secureStorage = {
+  set: (key: string, value: string) => {
+    // Use encrypted storage
+    const encrypted = encrypt(value);
+    localStorage.setItem(key, JSON.stringify(encrypted));
+  },
+  
+  get: (key: string) => {
+    const encrypted = localStorage.getItem(key);
+    if (!encrypted) return null;
+    
+    try {
+      const parsed = JSON.parse(encrypted);
+      return decrypt(parsed);
+    } catch {
+      return null;
+    }
+  },
+  
+  remove: (key: string) => {
+    localStorage.removeItem(key);
+  },
+};
+```
+
+## 🔍 Security Monitoring
+
+### Error Handling
+```typescript
+// Secure error handling
+export const secureErrorHandler = (error: Error, context: string) => {
+  // Log error details internally
+  console.error(`[ERROR] ${context}:`, error);
+  
+  // Return safe error message to client
+  return {
+    message: 'An error occurred',
+    code: 'INTERNAL_ERROR',
+  };
+};
+
+// Don't expose sensitive information
+export const handleApiError = (error: unknown) => {
+  if (error instanceof Error) {
+    // Log full error internally
+    console.error('API Error:', error);
+    
+    // Return safe message to client
+    return {
+      message: 'Request failed',
+      status: 500,
+    };
+  }
+  
+  return {
+    message: 'Unknown error',
+    status: 500,
+  };
+};
+```
+
+### Security Headers
+```typescript
+// Add security headers
+export const securityHeaders = {
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'X-XSS-Protection': '1; mode=block',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+};
+```
+
+## 🧪 Security Testing
+
+### Input Validation Tests
+```typescript
+// Test input validation
+describe('Input Validation', () => {
+  it('should reject malicious input', () => {
+    const maliciousInput = '<script>alert("xss")</script>';
+    
+    expect(() => {
+      validateMessage({ content: maliciousInput });
+    }).toThrow('Invalid characters detected');
+  });
+  
+  it('should reject SQL injection attempts', () => {
+    const sqlInjection = "'; DROP TABLE messages; --";
+    
+    expect(() => {
+      validateMessage({ content: sqlInjection });
+    }).toThrow('Invalid characters detected');
+  });
+});
+```
+
+### Authentication Tests
+```typescript
+// Test authentication
+describe('Authentication', () => {
+  it('should require authentication for protected routes', async () => {
+    const response = await request(app)
+      .get('/api/protected')
+      .expect(401);
+    
+    expect(response.body.error).toBe('Unauthorized');
+  });
+  
+  it('should allow access with valid token', async () => {
+    const token = generateTestToken();
+    
+    const response = await request(app)
+      .get('/api/protected')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+    
+    expect(response.body).toBeDefined();
+  });
+});
+```
+
+## 🚨 Security Checklist
+
+### Development
+- [ ] Input validation on all user inputs
+- [ ] SQL injection prevention
+- [ ] XSS protection
+- [ ] CSRF protection
+- [ ] Secure authentication
+- [ ] Proper error handling
+- [ ] Security headers
+- [ ] Rate limiting
+
+### Deployment
+- [ ] HTTPS enabled
+- [ ] Secure database connections
+- [ ] Environment variables secured
+- [ ] Regular security updates
+- [ ] Monitoring and logging
+- [ ] Backup security
+- [ ] Access controls
+
+### Monitoring
+- [ ] Security event logging
+- [ ] Intrusion detection
+- [ ] Regular security audits
+- [ ] Vulnerability scanning
+- [ ] Incident response plan
+
+## 📚 Security Resources
+
+### OWASP
+- **Top 10**: https://owasp.org/www-project-top-ten/
+- **Cheat Sheets**: https://cheatsheetseries.owasp.org/
+
+### Next.js Security
+- **Security Headers**: https://nextjs.org/docs/advanced-features/security-headers
+- **Authentication**: https://nextjs.org/docs/authentication
+
+### React Security
+- **Security Best Practices**: https://react.dev/learn/keeping-components-pure
+- **XSS Prevention**: https://react.dev/learn/keeping-components-pure
+
+---
+
+*This guide ensures LobeChat maintains the highest security standards.*

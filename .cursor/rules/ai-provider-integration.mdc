@@ -1,0 +1,322 @@
+---
+description: Guide for integrating new AI providers into LobeChat
+alwaysApply: true
+---
+
+# 🤖 AI Provider Integration Guide
+
+## Overview
+LobeChat supports multiple AI providers through a unified runtime system. This guide explains how to add new providers.
+
+## 🏗️ Architecture
+
+### Provider Runtime System
+```
+src/libs/model-runtime/
+├── AgentRuntime.ts           # Main runtime class
+├── BaseAI.ts                 # Base interface
+├── runtimeMap.ts             # Provider mapping
+└── providers/                # Provider implementations
+    ├── openai/
+    ├── anthropic/
+    ├── google/
+    └── your-provider/
+```
+
+### Key Components
+- **AgentRuntime**: Unified interface for all providers
+- **BaseAI**: Common interface all providers implement
+- **RuntimeMap**: Maps provider names to implementations
+- **Provider Classes**: Specific implementations for each provider
+
+## 🚀 Adding a New Provider
+
+### Step 1: Create Provider Directory
+```bash
+mkdir src/libs/model-runtime/providers/your-provider
+```
+
+### Step 2: Define Provider Class
+```typescript
+// src/libs/model-runtime/providers/your-provider/index.ts
+import { BaseAI } from '../../BaseAI';
+import { ChatStreamPayload, ChatStreamCallbacks } from '../../types';
+
+export class LobeYourProviderAI implements BaseAI {
+  private client: YourProviderClient;
+  private baseURL: string;
+
+  constructor(options: YourProviderOptions) {
+    this.client = new YourProviderClient({
+      apiKey: options.apiKey,
+      baseURL: options.baseURL,
+    });
+    this.baseURL = options.baseURL;
+  }
+
+  async chat(payload: ChatStreamPayload, options?: ChatStreamCallbacks) {
+    // Convert LobeChat format to provider format
+    const providerPayload = this.convertPayload(payload);
+    
+    // Call provider API
+    const response = await this.client.chat(providerPayload);
+    
+    // Convert response to LobeChat format
+    return this.convertResponse(response);
+  }
+
+  private convertPayload(payload: ChatStreamPayload) {
+    return {
+      model: payload.model,
+      messages: payload.messages.map(msg => ({
+        role: msg.role,
+        content: msg.content,
+      })),
+      temperature: payload.temperature,
+      max_tokens: payload.max_tokens,
+    };
+  }
+
+  private convertResponse(response: YourProviderResponse) {
+    // Convert provider response to LobeChat format
+    return new Response(response.body, {
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+      },
+    });
+  }
+}
+```
+
+### Step 3: Add to Runtime Map
+```typescript
+// src/libs/model-runtime/runtimeMap.ts
+import { LobeYourProviderAI } from './providers/your-provider';
+
+export const providerRuntimeMap = {
+  // ... existing providers
+  'your-provider': LobeYourProviderAI,
+};
+```
+
+### Step 4: Add Model Configuration
+```typescript
+// src/config/aiModels/your-provider.ts
+export const yourProviderModels: LLMModelCard[] = [
+  {
+    id: 'your-model-1',
+    displayName: 'Your Model 1',
+    description: 'Description of your model',
+    enabled: true,
+    type: 'text',
+    parameters: {
+      temperature: {
+        default: 0.7,
+        min: 0,
+        max: 2,
+      },
+      max_tokens: {
+        default: 2048,
+        min: 1,
+        max: 4096,
+      },
+    },
+  },
+];
+```
+
+### Step 5: Add Provider Icon
+```typescript
+// packages/icons/src/your-provider.tsx
+export const YourProviderIcon = (props: IconProps) => (
+  <svg {...props} viewBox="0 0 24 24">
+    {/* Your provider logo SVG */}
+  </svg>
+);
+```
+
+### Step 6: Update Types
+```typescript
+// packages/types/src/llm.ts
+export enum ModelProvider {
+  // ... existing providers
+  YourProvider = 'your-provider',
+}
+
+export interface YourProviderOptions {
+  apiKey: string;
+  baseURL?: string;
+  // ... other options
+}
+```
+
+## 🧪 Testing Provider
+
+### Unit Tests
+```typescript
+// src/libs/model-runtime/providers/your-provider/__tests__/index.test.ts
+import { LobeYourProviderAI } from '../index';
+
+describe('LobeYourProviderAI', () => {
+  let provider: LobeYourProviderAI;
+
+  beforeEach(() => {
+    provider = new LobeYourProviderAI({
+      apiKey: 'test-key',
+      baseURL: 'https://api.your-provider.com',
+    });
+  });
+
+  it('should create instance correctly', () => {
+    expect(provider).toBeDefined();
+  });
+
+  it('should handle chat requests', async () => {
+    const payload = {
+      model: 'your-model',
+      messages: [
+        { role: 'user', content: 'Hello' },
+      ],
+    };
+
+    const response = await provider.chat(payload);
+    expect(response).toBeInstanceOf(Response);
+  });
+});
+```
+
+### Integration Tests
+```typescript
+// src/libs/model-runtime/__tests__/your-provider.test.ts
+import { AgentRuntime } from '../AgentRuntime';
+
+describe('YourProvider Integration', () => {
+  it('should work with AgentRuntime', async () => {
+    const runtime = await AgentRuntime.initializeWithProvider({
+      provider: 'your-provider',
+      apiKey: 'test-key',
+    });
+
+    const response = await runtime.chat({
+      model: 'your-model',
+      messages: [{ role: 'user', content: 'Hello' }],
+    });
+
+    expect(response).toBeDefined();
+  });
+});
+```
+
+## 🔧 Configuration
+
+### Environment Variables
+```bash
+# Add to .env.local
+YOUR_PROVIDER_API_KEY=your-api-key
+YOUR_PROVIDER_BASE_URL=https://api.your-provider.com
+```
+
+### Provider Settings
+```typescript
+// src/config/llm.ts
+export const getYourProviderConfig = () => ({
+  apiKey: process.env.YOUR_PROVIDER_API_KEY,
+  baseURL: process.env.YOUR_PROVIDER_BASE_URL,
+});
+```
+
+## 📝 Documentation
+
+### Provider Documentation
+```markdown
+# Your Provider Integration
+
+## Features
+- Text generation
+- Streaming support
+- Custom parameters
+
+## Configuration
+- API Key: Required
+- Base URL: Optional
+- Custom headers: Supported
+
+## Models
+- your-model-1: General purpose
+- your-model-2: Specialized task
+```
+
+### API Documentation
+```typescript
+/**
+ * Your Provider AI Client
+ * 
+ * @example
+ * ```typescript
+ * const client = new LobeYourProviderAI({
+ *   apiKey: 'your-key',
+ *   baseURL: 'https://api.your-provider.com'
+ * });
+ * 
+ * const response = await client.chat({
+ *   model: 'your-model',
+ *   messages: [{ role: 'user', content: 'Hello' }]
+ * });
+ * ```
+ */
+export class LobeYourProviderAI implements BaseAI {
+  // ... implementation
+}
+```
+
+## 🚨 Common Issues
+
+### Authentication Errors
+- Check API key format
+- Verify base URL
+- Check rate limits
+
+### Response Format Issues
+- Ensure proper streaming format
+- Check content-type headers
+- Validate message format
+
+### Model Configuration
+- Verify model names
+- Check parameter ranges
+- Test with different models
+
+## 🔍 Debugging
+
+### Enable Debug Logging
+```typescript
+import { debug } from 'debug';
+
+const log = debug('lobe-chat:your-provider');
+
+// In your provider class
+log('Making request to provider', { payload });
+```
+
+### Common Debug Points
+1. **Request conversion**: Check payload format
+2. **API calls**: Verify network requests
+3. **Response handling**: Check response format
+4. **Error handling**: Log and handle errors
+
+## 📚 Resources
+
+### Provider Documentation
+- Check provider's official docs
+- API reference
+- Authentication guide
+- Rate limiting info
+
+### LobeChat Resources
+- `src/libs/model-runtime/` - Runtime system
+- `src/config/aiModels/` - Model configurations
+- `packages/types/` - Type definitions
+
+---
+
+*This guide ensures consistent integration of new AI providers into LobeChat's unified runtime system.*

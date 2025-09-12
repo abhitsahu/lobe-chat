@@ -1,0 +1,408 @@
+---
+description: Database patterns and best practices for LobeChat
+alwaysApply: true
+---
+
+# 🗄️ Database Patterns & Best Practices
+
+## Overview
+LobeChat uses PostgreSQL for production and PGLite (WASM) for client-side storage, with Drizzle ORM for database operations.
+
+## 🏗️ Database Architecture
+
+### Database Layers
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Client DB     │    │   Server DB     │    │   Migration     │
+│   (PGLite)      │    │   (PostgreSQL)  │    │   System        │
+│                 │    │                 │    │                 │
+│ • Browser WASM  │    │ • Production    │    │ • Schema        │
+│ • Local Storage │    │ • Multi-user    │    │   Versioning    │
+│ • Offline First │    │ • Scalable      │    │ • Data          │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
+
+### Key Components
+- **Drizzle ORM**: Type-safe database operations
+- **PGLite**: Client-side PostgreSQL (WASM)
+- **PostgreSQL**: Production database
+- **Migrations**: Schema versioning and updates
+
+## 📁 Database Structure
+
+### Schema Organization
+```
+src/database/
+├── schemas/              # Database schemas
+│   ├── agent.ts         # Agent/Assistant schemas
+│   ├── session.ts       # Chat session schemas
+│   ├── message.ts       # Message schemas
+│   ├── user.ts          # User schemas
+│   └── index.ts         # Schema exports
+├── migrations/           # Database migrations
+│   ├── meta/            # Migration metadata
+│   └── *.sql            # SQL migration files
+├── client/              # Client-side database
+│   └── migrations.json  # PGLite migrations
+└── index.ts             # Database exports
+```
+
+### Schema Definition Pattern
+```typescript
+// src/database/schemas/your-table.ts
+import { pgTable, text, timestamp, boolean, jsonb } from 'drizzle-orm/pg-core';
+import { timestamps } from './common';
+
+export const yourTable = pgTable('your_table', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => idGenerator('your_table'))
+    .notNull(),
+  
+  name: text('name').notNull(),
+  description: text('description'),
+  enabled: boolean('enabled').default(true),
+  config: jsonb('config').$type<YourConfigType>(),
+  
+  ...timestamps,
+});
+
+export type YourTable = typeof yourTable.$inferSelect;
+export type NewYourTable = typeof yourTable.$inferInsert;
+```
+
+## 🚀 Creating New Tables
+
+### Step 1: Define Schema
+```typescript
+// src/database/schemas/your-feature.ts
+import { pgTable, text, timestamp, boolean, jsonb } from 'drizzle-orm/pg-core';
+import { timestamps } from './common';
+
+export const yourFeatureTable = pgTable('your_feature', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => idGenerator('your_feature'))
+    .notNull(),
+  
+  title: text('title').notNull(),
+  description: text('description'),
+  isActive: boolean('is_active').default(true),
+  metadata: jsonb('metadata').$type<YourMetadataType>(),
+  
+  // Foreign keys
+  userId: text('user_id').references(() => users.id),
+  
+  ...timestamps,
+});
+
+// Indexes
+export const yourFeatureIndexes = {
+  userId: index('your_feature_user_id_idx').on(yourFeatureTable.userId),
+  isActive: index('your_feature_is_active_idx').on(yourFeatureTable.isActive),
+};
+```
+
+### Step 2: Add to Schema Index
+```typescript
+// src/database/schemas/index.ts
+export * from './your-feature';
+```
+
+### Step 3: Create Migration
+```bash
+# Generate migration
+pnpm db:generate
+
+# This creates:
+# - src/database/migrations/XXXX_add_your_feature.sql
+# - src/database/migrations/meta/XXXX_snapshot.json
+# - src/database/client/migrations.json
+```
+
+### Step 4: Run Migration
+```bash
+# Run server migration
+pnpm db:migrate
+
+# Client migration runs automatically
+```
+
+## 🔧 Database Operations
+
+### CRUD Operations
+```typescript
+// src/database/your-feature.ts
+import { db } from './index';
+import { yourFeatureTable, NewYourFeature } from './schemas/your-feature';
+
+export class YourFeatureModel {
+  // Create
+  async create(data: NewYourFeature) {
+    const [result] = await db
+      .insert(yourFeatureTable)
+      .values(data)
+      .returning();
+    
+    return result;
+  }
+
+  // Read
+  async findById(id: string) {
+    const [result] = await db
+      .select()
+      .from(yourFeatureTable)
+      .where(eq(yourFeatureTable.id, id));
+    
+    return result;
+  }
+
+  async findByUserId(userId: string) {
+    return await db
+      .select()
+      .from(yourFeatureTable)
+      .where(eq(yourFeatureTable.userId, userId));
+  }
+
+  // Update
+  async update(id: string, data: Partial<NewYourFeature>) {
+    const [result] = await db
+      .update(yourFeatureTable)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(yourFeatureTable.id, id))
+      .returning();
+    
+    return result;
+  }
+
+  // Delete
+  async delete(id: string) {
+    await db
+      .delete(yourFeatureTable)
+      .where(eq(yourFeatureTable.id, id));
+  }
+}
+```
+
+### Complex Queries
+```typescript
+// Joins
+async findWithUser(id: string) {
+  const [result] = await db
+    .select({
+      feature: yourFeatureTable,
+      user: users,
+    })
+    .from(yourFeatureTable)
+    .leftJoin(users, eq(yourFeatureTable.userId, users.id))
+    .where(eq(yourFeatureTable.id, id));
+  
+  return result;
+}
+
+// Aggregations
+async getStats(userId: string) {
+  const [result] = await db
+    .select({
+      total: count(yourFeatureTable.id),
+      active: count(yourFeatureTable.id).where(eq(yourFeatureTable.isActive, true)),
+    })
+    .from(yourFeatureTable)
+    .where(eq(yourFeatureTable.userId, userId));
+  
+  return result;
+}
+
+// Pagination
+async findPaginated(userId: string, page: number, limit: number) {
+  const offset = (page - 1) * limit;
+  
+  const [data, total] = await Promise.all([
+    db
+      .select()
+      .from(yourFeatureTable)
+      .where(eq(yourFeatureTable.userId, userId))
+      .limit(limit)
+      .offset(offset),
+    
+    db
+      .select({ count: count() })
+      .from(yourFeatureTable)
+      .where(eq(yourFeatureTable.userId, userId))
+  ]);
+  
+  return {
+    data,
+    total: total[0].count,
+    page,
+    limit,
+    totalPages: Math.ceil(total[0].count / limit),
+  };
+}
+```
+
+## 🧪 Testing Database
+
+### Test Setup
+```typescript
+// tests/database/setup.ts
+import { drizzle } from 'drizzle-orm/pglite';
+import { PGlite } from '@electric-sql/pglite';
+import * as schema from '../../src/database/schemas';
+
+export const createTestDb = () => {
+  const pglite = new PGlite();
+  return drizzle(pglite, { schema });
+};
+```
+
+### Model Tests
+```typescript
+// tests/database/your-feature.test.ts
+import { describe, it, expect, beforeEach } from 'vitest';
+import { createTestDb } from './setup';
+import { YourFeatureModel } from '../../src/database/your-feature';
+
+describe('YourFeatureModel', () => {
+  let db: ReturnType<typeof createTestDb>;
+  let model: YourFeatureModel;
+
+  beforeEach(async () => {
+    db = createTestDb();
+    model = new YourFeatureModel(db);
+  });
+
+  it('should create a new feature', async () => {
+    const data = {
+      title: 'Test Feature',
+      description: 'Test Description',
+      userId: 'user-123',
+    };
+
+    const result = await model.create(data);
+
+    expect(result.id).toBeDefined();
+    expect(result.title).toBe(data.title);
+  });
+
+  it('should find feature by id', async () => {
+    const data = {
+      title: 'Test Feature',
+      userId: 'user-123',
+    };
+
+    const created = await model.create(data);
+    const found = await model.findById(created.id);
+
+    expect(found).toEqual(created);
+  });
+});
+```
+
+### Migration Tests
+```typescript
+// tests/database/migrations.test.ts
+import { describe, it, expect } from 'vitest';
+import { migrate } from 'drizzle-orm/pglite/migrator';
+import { createTestDb } from './setup';
+
+describe('Migrations', () => {
+  it('should run migrations successfully', async () => {
+    const db = createTestDb();
+    
+    // This should not throw
+    await expect(migrate(db, { migrationsFolder: 'src/database/migrations' }))
+      .resolves.not.toThrow();
+  });
+});
+```
+
+## 🔍 Query Optimization
+
+### Indexing Strategy
+```typescript
+// Add indexes for frequently queried columns
+export const yourFeatureIndexes = {
+  // Single column indexes
+  userId: index('your_feature_user_id_idx').on(yourFeatureTable.userId),
+  isActive: index('your_feature_is_active_idx').on(yourFeatureTable.isActive),
+  
+  // Composite indexes
+  userActive: index('your_feature_user_active_idx')
+    .on(yourFeatureTable.userId, yourFeatureTable.isActive),
+  
+  // Partial indexes
+  activeOnly: index('your_feature_active_only_idx')
+    .on(yourFeatureTable.userId)
+    .where(eq(yourFeatureTable.isActive, true)),
+};
+```
+
+### Query Performance
+```typescript
+// Use select only needed columns
+const features = await db
+  .select({
+    id: yourFeatureTable.id,
+    title: yourFeatureTable.title,
+  })
+  .from(yourFeatureTable)
+  .where(eq(yourFeatureTable.userId, userId));
+
+// Use limit for large datasets
+const recentFeatures = await db
+  .select()
+  .from(yourFeatureTable)
+  .where(eq(yourFeatureTable.userId, userId))
+  .orderBy(desc(yourFeatureTable.createdAt))
+  .limit(10);
+```
+
+## 🚨 Common Issues
+
+### Migration Issues
+- **Schema conflicts**: Check for duplicate column names
+- **Type mismatches**: Verify column types match
+- **Foreign key constraints**: Ensure referenced tables exist
+
+### Performance Issues
+- **Missing indexes**: Add indexes for frequently queried columns
+- **N+1 queries**: Use joins or batch queries
+- **Large datasets**: Implement pagination
+
+### Data Integrity
+- **Validation**: Use Zod schemas for data validation
+- **Constraints**: Add database constraints
+- **Transactions**: Use transactions for complex operations
+
+## 🔧 Debugging
+
+### Query Logging
+```typescript
+// Enable query logging
+const db = drizzle(pglite, { 
+  schema,
+  logger: true, // Enable query logging
+});
+```
+
+### Common Debug Points
+1. **Query execution**: Check SQL queries
+2. **Data types**: Verify column types
+3. **Relationships**: Check foreign key constraints
+4. **Performance**: Monitor query execution time
+
+## 📚 Resources
+
+### Drizzle ORM
+- **Documentation**: https://orm.drizzle.team
+- **PostgreSQL**: https://orm.drizzle.team/docs/overview
+- **Migrations**: https://orm.drizzle.team/docs/migrations
+
+### PGLite
+- **Documentation**: https://github.com/electric-sql/pglite
+- **WASM**: Browser PostgreSQL support
+
+---
+
+*This guide ensures consistent and efficient database operations in LobeChat.*

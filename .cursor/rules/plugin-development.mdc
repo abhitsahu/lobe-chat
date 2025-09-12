@@ -1,0 +1,416 @@
+---
+description: Guide for developing plugins and tools for LobeChat
+alwaysApply: true
+---
+
+# 🔌 Plugin Development Guide
+
+## Overview
+LobeChat supports a powerful plugin system that allows extending functionality through function calling and custom tools.
+
+## 🏗️ Plugin Architecture
+
+### Plugin System Components
+```
+src/features/Tool/
+├── components/              # Plugin UI components
+├── store/                   # Plugin state management
+├── types/                   # Plugin type definitions
+└── utils/                   # Plugin utilities
+
+src/tools/                   # Built-in tools
+├── web-search/              # Web search tool
+├── image-generation/        # Image generation tool
+└── your-tool/               # Your custom tool
+```
+
+### Plugin Types
+1. **Built-in Tools**: Core functionality tools
+2. **External Plugins**: Third-party plugins
+3. **Custom Tools**: User-created tools
+
+## 🚀 Creating a New Tool
+
+### Step 1: Define Tool Schema
+```typescript
+// src/tools/your-tool/schema.ts
+import { z } from 'zod';
+
+export const yourToolSchema = z.object({
+  query: z.string().describe('The search query'),
+  limit: z.number().optional().describe('Maximum number of results'),
+});
+
+export type YourToolParams = z.infer<typeof yourToolSchema>;
+```
+
+### Step 2: Implement Tool Logic
+```typescript
+// src/tools/your-tool/index.ts
+import { yourToolSchema, YourToolParams } from './schema';
+
+export const yourTool = {
+  name: 'your_tool',
+  description: 'Description of what your tool does',
+  parameters: yourToolSchema,
+  
+  async execute(params: YourToolParams) {
+    try {
+      // Your tool logic here
+      const result = await performYourOperation(params);
+      
+      return {
+        success: true,
+        data: result,
+        message: 'Tool executed successfully',
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        message: 'Tool execution failed',
+      };
+    }
+  },
+};
+```
+
+### Step 3: Register Tool
+```typescript
+// src/tools/index.ts
+import { yourTool } from './your-tool';
+
+export const builtinTools = {
+  // ... existing tools
+  your_tool: yourTool,
+};
+```
+
+### Step 4: Add Tool UI (Optional)
+```typescript
+// src/tools/your-tool/components/YourToolUI.tsx
+import { Card, Input, Button } from 'antd';
+import { useState } from 'react';
+
+export const YourToolUI = ({ onExecute }: { onExecute: (params: any) => void }) => {
+  const [query, setQuery] = useState('');
+  const [limit, setLimit] = useState(10);
+
+  const handleExecute = () => {
+    onExecute({ query, limit });
+  };
+
+  return (
+    <Card title="Your Tool">
+      <Input
+        placeholder="Enter query"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+      />
+      <Input
+        type="number"
+        placeholder="Limit"
+        value={limit}
+        onChange={(e) => setLimit(Number(e.target.value))}
+      />
+      <Button onClick={handleExecute}>Execute</Button>
+    </Card>
+  );
+};
+```
+
+## 🔧 Plugin Configuration
+
+### Tool Manifest
+```typescript
+// src/tools/your-tool/manifest.ts
+export const yourToolManifest = {
+  name: 'Your Tool',
+  description: 'A powerful tool for your needs',
+  version: '1.0.0',
+  author: 'Your Name',
+  homepage: 'https://your-website.com',
+  repository: 'https://github.com/your-repo',
+  license: 'MIT',
+  
+  // Tool configuration
+  tool: {
+    name: 'your_tool',
+    description: 'Description of what your tool does',
+    parameters: {
+      type: 'object',
+      properties: {
+        query: {
+          type: 'string',
+          description: 'The search query',
+        },
+        limit: {
+          type: 'number',
+          description: 'Maximum number of results',
+          default: 10,
+        },
+      },
+      required: ['query'],
+    },
+  },
+  
+  // UI configuration
+  ui: {
+    component: 'YourToolUI',
+    props: {
+      // UI-specific props
+    },
+  },
+};
+```
+
+### Environment Variables
+```bash
+# Add to .env.local
+YOUR_TOOL_API_KEY=your-api-key
+YOUR_TOOL_BASE_URL=https://api.your-tool.com
+```
+
+## 🧪 Testing Tools
+
+### Unit Tests
+```typescript
+// src/tools/your-tool/__tests__/index.test.ts
+import { yourTool } from '../index';
+
+describe('yourTool', () => {
+  it('should execute successfully with valid params', async () => {
+    const params = {
+      query: 'test query',
+      limit: 5,
+    };
+
+    const result = await yourTool.execute(params);
+
+    expect(result.success).toBe(true);
+    expect(result.data).toBeDefined();
+  });
+
+  it('should handle errors gracefully', async () => {
+    const params = {
+      query: '',
+    };
+
+    const result = await yourTool.execute(params);
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBeDefined();
+  });
+});
+```
+
+### Integration Tests
+```typescript
+// src/features/Tool/__tests__/your-tool.test.tsx
+import { render, screen, fireEvent } from '@testing-library/react';
+import { YourToolUI } from '../../../tools/your-tool/components/YourToolUI';
+
+describe('YourToolUI', () => {
+  it('should render correctly', () => {
+    const mockExecute = jest.fn();
+    render(<YourToolUI onExecute={mockExecute} />);
+    
+    expect(screen.getByText('Your Tool')).toBeInTheDocument();
+  });
+
+  it('should call onExecute when button is clicked', () => {
+    const mockExecute = jest.fn();
+    render(<YourToolUI onExecute={mockExecute} />);
+    
+    fireEvent.click(screen.getByText('Execute'));
+    
+    expect(mockExecute).toHaveBeenCalled();
+  });
+});
+```
+
+## 🔌 External Plugin Development
+
+### Plugin Package Structure
+```
+your-plugin/
+├── package.json
+├── manifest.json
+├── src/
+│   ├── index.ts
+│   ├── components/
+│   └── utils/
+├── README.md
+└── LICENSE
+```
+
+### Package.json
+```json
+{
+  "name": "@your-org/lobe-chat-plugin",
+  "version": "1.0.0",
+  "description": "Your LobeChat plugin",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "keywords": ["lobe-chat", "plugin", "ai"],
+  "author": "Your Name",
+  "license": "MIT",
+  "peerDependencies": {
+    "@lobehub/chat-plugin-sdk": "^1.0.0"
+  }
+}
+```
+
+### Plugin Implementation
+```typescript
+// src/index.ts
+import { PluginSDK } from '@lobehub/chat-plugin-sdk';
+
+export class YourPlugin extends PluginSDK {
+  constructor() {
+    super({
+      name: 'your-plugin',
+      version: '1.0.0',
+      description: 'Your plugin description',
+    });
+  }
+
+  async onActivate() {
+    // Plugin activation logic
+  }
+
+  async onDeactivate() {
+    // Plugin deactivation logic
+  }
+
+  async executeTool(name: string, params: any) {
+    // Tool execution logic
+    switch (name) {
+      case 'your_tool':
+        return this.yourTool(params);
+      default:
+        throw new Error(`Unknown tool: ${name}`);
+    }
+  }
+
+  private async yourTool(params: any) {
+    // Your tool implementation
+    return {
+      success: true,
+      data: 'Tool result',
+    };
+  }
+}
+```
+
+## 📝 Documentation
+
+### Tool Documentation
+```markdown
+# Your Tool
+
+## Description
+A powerful tool that does amazing things.
+
+## Parameters
+- `query` (string, required): The search query
+- `limit` (number, optional): Maximum number of results (default: 10)
+
+## Usage
+```typescript
+const result = await yourTool.execute({
+  query: 'search term',
+  limit: 5
+});
+```
+
+## Examples
+```typescript
+// Basic usage
+await yourTool.execute({ query: 'hello world' });
+
+// With limit
+await yourTool.execute({ query: 'hello world', limit: 20 });
+```
+```
+
+### Plugin Documentation
+```markdown
+# Your Plugin
+
+## Installation
+```bash
+npm install @your-org/lobe-chat-plugin
+```
+
+## Configuration
+Add to your LobeChat configuration:
+```json
+{
+  "plugins": {
+    "your-plugin": {
+      "enabled": true,
+      "config": {
+        "apiKey": "your-api-key"
+      }
+    }
+  }
+}
+```
+
+## Features
+- Feature 1
+- Feature 2
+- Feature 3
+```
+
+## 🚨 Common Issues
+
+### Tool Execution Errors
+- Check parameter validation
+- Verify API credentials
+- Handle network errors
+
+### Plugin Loading Issues
+- Check manifest format
+- Verify dependencies
+- Check file permissions
+
+### UI Rendering Problems
+- Check component props
+- Verify styling
+- Test responsive design
+
+## 🔍 Debugging
+
+### Enable Debug Logging
+```typescript
+import { debug } from 'debug';
+
+const log = debug('lobe-chat:your-tool');
+
+// In your tool
+log('Executing tool with params', params);
+```
+
+### Common Debug Points
+1. **Parameter validation**: Check input format
+2. **API calls**: Verify network requests
+3. **Response handling**: Check output format
+4. **Error handling**: Log and handle errors
+
+## 📚 Resources
+
+### LobeChat Plugin SDK
+- `@lobehub/chat-plugin-sdk` - Plugin development SDK
+- `@lobehub/chat-plugins-gateway` - Plugin gateway
+
+### Documentation
+- Plugin development guide
+- API reference
+- Examples and tutorials
+
+---
+
+*This guide helps you create powerful plugins and tools for LobeChat.*

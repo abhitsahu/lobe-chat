@@ -1,0 +1,270 @@
+---
+description: Development workflow and best practices for LobeChat
+alwaysApply: true
+---
+
+# 🔄 LobeChat Development Workflow
+
+## 📋 Development Process
+
+### 1. Feature Development
+```bash
+# 1. Create feature branch
+git checkout -b feature/your-feature-name
+
+# 2. Start development server
+pnpm dev
+
+# 3. Make changes and test
+# 4. Run tests
+pnpm test
+
+# 5. Type check
+pnpm type-check
+
+# 6. Lint and fix
+pnpm lint
+```
+
+### 2. Code Quality Checks
+```bash
+# Run all quality checks
+pnpm lint
+
+# Individual checks
+pnpm lint:ts          # TypeScript linting
+pnpm lint:style       # CSS/SCSS linting
+pnpm lint:md          # Markdown linting
+pnpm type-check       # TypeScript checking
+```
+
+### 3. Testing Workflow
+```bash
+# Run all tests
+pnpm test
+
+# Run specific test file
+pnpm test src/features/YourFeature/__tests__/YourComponent.test.tsx
+
+# Run with coverage
+pnpm test:coverage
+
+# Update snapshots
+pnpm test:update
+```
+
+## 🏗️ Architecture Patterns
+
+### Component Development
+1. **Create component file**: `YourComponent.tsx`
+2. **Add TypeScript types**: Define props interface
+3. **Implement component**: Use hooks and state
+4. **Add styling**: Use `antd-style` or CSS modules
+5. **Write tests**: Component and integration tests
+6. **Add documentation**: JSDoc comments
+
+### Store Development
+1. **Define types**: `YourFeatureState` interface
+2. **Create initial state**: Default values
+3. **Implement actions**: State mutations
+4. **Add selectors**: Data accessors
+5. **Write tests**: Store behavior tests
+
+### API Development
+1. **Define schema**: Zod validation schemas
+2. **Create router**: TRPC router
+3. **Implement handlers**: Business logic
+4. **Add types**: TypeScript definitions
+5. **Write tests**: API endpoint tests
+
+## 📁 File Organization
+
+### Feature Structure
+```
+src/features/YourFeature/
+├── index.ts                    # Public exports
+├── components/                 # UI components
+│   ├── YourComponent.tsx
+│   ├── YourComponent.test.tsx
+│   └── YourComponent.stories.tsx
+├── store/                      # State management
+│   ├── index.ts
+│   ├── initialState.ts
+│   ├── selectors.ts
+│   ├── actions.ts
+│   └── __tests__/
+├── hooks/                      # Custom hooks
+│   └── useYourFeature.ts
+├── utils/                      # Utility functions
+│   └── helpers.ts
+├── types.ts                    # Type definitions
+├── constants.ts                # Feature constants
+└── __tests__/                  # Integration tests
+    └── YourFeature.test.tsx
+```
+
+### Store Structure
+```
+src/store/yourFeature/
+├── index.ts                    # Store exports
+├── initialState.ts             # Initial state
+├── selectors.ts                # Data selectors
+├── actions.ts                  # Action creators
+├── slices/                     # Feature slices
+│   ├── data/
+│   │   ├── index.ts
+│   │   ├── actions.ts
+│   │   └── selectors.ts
+│   └── ui/
+│       ├── index.ts
+│       ├── actions.ts
+│       └── selectors.ts
+└── __tests__/                  # Store tests
+    └── yourFeature.test.ts
+```
+
+## 🧪 Testing Strategy
+
+### Unit Tests
+- **Components**: Test rendering and behavior
+- **Hooks**: Test state and side effects
+- **Utils**: Test pure functions
+- **Stores**: Test state mutations
+
+### Integration Tests
+- **API endpoints**: Test full request/response cycle
+- **Feature workflows**: Test complete user flows
+- **Database operations**: Test data persistence
+
+### Test Structure
+```typescript
+// Component test
+describe('YourComponent', () => {
+  beforeEach(() => {
+    // Setup
+  });
+
+  it('renders correctly', () => {
+    render(<YourComponent />);
+    expect(screen.getByText('Expected Text')).toBeInTheDocument();
+  });
+
+  it('handles user interaction', () => {
+    render(<YourComponent />);
+    fireEvent.click(screen.getByRole('button'));
+    expect(mockFunction).toHaveBeenCalled();
+  });
+});
+```
+
+## 🔧 Development Tools
+
+### VS Code Extensions
+- **TypeScript**: Built-in support
+- **ESLint**: Code linting
+- **Prettier**: Code formatting
+- **Tailwind CSS**: CSS support
+- **GitLens**: Git integration
+
+### Debugging
+```typescript
+// Debug logging
+import { debug } from 'debug';
+
+const log = debug('lobe-chat:your-feature');
+
+// Usage
+log('Debug message', { data });
+```
+
+### Performance Monitoring
+```typescript
+// React DevTools Profiler
+import { Profiler } from 'react';
+
+<Profiler id="YourComponent" onRender={onRenderCallback}>
+  <YourComponent />
+</Profiler>
+```
+
+## 📝 Code Standards
+
+### TypeScript
+- **Strict mode**: Always enabled
+- **Type definitions**: Explicit types for all functions
+- **Interfaces**: Use interfaces over types for objects
+- **Generics**: Use generics for reusable components
+
+### React
+- **Functional components**: Use hooks, not class components
+- **Custom hooks**: Extract reusable logic
+- **Memoization**: Use `useMemo` and `useCallback` appropriately
+- **Error boundaries**: Handle errors gracefully
+
+### Styling
+- **CSS-in-JS**: Use `antd-style` for styling
+- **Theme**: Use design tokens from theme
+- **Responsive**: Mobile-first approach
+- **Accessibility**: Follow WCAG guidelines
+
+## 🚀 Deployment
+
+### Environment Setup
+```bash
+# Production build
+pnpm build
+
+# Start production server
+pnpm start
+
+# Docker build
+docker build -t lobe-chat .
+
+# Docker run
+docker run -p 3000:3000 lobe-chat
+```
+
+### Environment Variables
+```bash
+# Required
+OPENAI_API_KEY=sk-your-key
+DATABASE_URL=postgresql://...
+
+# Optional
+NEXTAUTH_SECRET=your-secret
+NEXTAUTH_URL=https://your-domain.com
+```
+
+## 🔍 Code Review Process
+
+### Before Submitting
+1. **Run tests**: `pnpm test`
+2. **Type check**: `pnpm type-check`
+3. **Lint code**: `pnpm lint`
+4. **Build check**: `pnpm build`
+
+### Review Checklist
+- [ ] Code follows project patterns
+- [ ] Tests are included and passing
+- [ ] TypeScript types are correct
+- [ ] Performance considerations addressed
+- [ ] Accessibility requirements met
+- [ ] Documentation updated if needed
+
+## 📚 Resources
+
+### Documentation
+- **Main Guide**: `LOBECHAT_COMPREHENSIVE_GUIDE.md`
+- **API Docs**: `src/server/` directory
+- **Component Library**: `@lobehub/ui` package
+
+### External Resources
+- **Next.js**: https://nextjs.org/docs
+- **React**: https://react.dev
+- **TypeScript**: https://www.typescriptlang.org/docs
+- **Zustand**: https://zustand-demo.pmnd.rs
+- **Ant Design**: https://ant.design
+
+---
+
+*This workflow ensures consistent, high-quality development practices across the LobeChat project.*

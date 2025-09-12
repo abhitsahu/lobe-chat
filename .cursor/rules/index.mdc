@@ -1,0 +1,206 @@
+---
+description: Main index file for LobeChat Cursor documentation
+alwaysApply: true
+---
+
+# 🤯 LobeChat Cursor Documentation Index
+
+## 📚 Documentation Overview
+
+This directory contains comprehensive documentation and rules for Cursor AI to effectively work with the LobeChat project. Each file provides specific guidance for different aspects of development.
+
+## 🎯 Quick Reference
+
+### Getting Started
+- **`quick-start.mdc`** - Quick start guide for new developers
+- **`project-introduce.mdc`** - Project overview and tech stack
+- **`development-workflow.mdc`** - Development process and best practices
+
+### Core Development
+- **`react-component.mdc`** - React component patterns and best practices
+- **`typescript.mdc`** - TypeScript coding standards and patterns
+- **`backend-architecture.mdc`** - Backend layer architecture and design
+- **`code-review.mdc`** - Code review process and standards
+
+### State Management
+- **`zustand-slice-organization.mdc`** - Zustand store organization patterns
+- **`zustand-action-patterns.mdc`** - Action implementation patterns
+
+### Database & Data
+- **`database-patterns.mdc`** - Database patterns and best practices
+- **`define-database-model.mdc`** - Database model definition guidelines
+- **`drizzle-schema-style-guide.mdc`** - Drizzle ORM schema conventions
+
+### AI & Machine Learning
+- **`ai-provider-integration.mdc`** - Guide for integrating new AI providers
+- **`add-provider-doc.mdc`** - Adding new AI provider documentation
+
+### Plugins & Extensions
+- **`plugin-development.mdc`** - Guide for developing plugins and tools
+
+### Testing
+- **`testing-guide/`** - Comprehensive testing strategies
+  - **`testing-guide.mdc`** - Main testing guide
+  - **`db-model-test.mdc`** - Database model testing
+  - **`electron-ipc-test.mdc`** - Electron IPC testing
+
+### Desktop (Electron)
+- **`desktop-feature-implementation.mdc`** - Desktop app development
+- **`desktop-controller-tests.mdc`** - Desktop controller testing
+- **`desktop-local-tools-implement.mdc`** - Local tools implementation
+- **`desktop-menu-configuration.mdc`** - Menu system configuration
+- **`desktop-window-management.mdc`** - Window management patterns
+
+### UI & Styling
+- **`packages/react-layout-kit.mdc`** - Layout component usage
+- **`cursor-ux.mdc`** - UX design guidelines
+
+### Internationalization
+- **`i18n.mdc`** - Internationalization workflow and patterns
+
+### Performance & Security
+- **`performance-optimization.mdc`** - Performance optimization patterns
+- **`security-guidelines.mdc`** - Security guidelines and best practices
+
+### Debugging & Development
+- **`debug-usage.mdc`** - Debug logging patterns and usage
+
+## 🚀 How to Use This Documentation
+
+### For Cursor AI
+These rules help Cursor understand:
+- **Code patterns** used in LobeChat
+- **Architecture decisions** and why they were made
+- **Best practices** for each technology stack
+- **Testing strategies** and requirements
+- **File organization** and naming conventions
+
+### For Developers
+Use these rules as:
+- **Reference guides** for consistent coding
+- **Onboarding materials** for new team members
+- **Best practice examples** for similar projects
+- **Architecture documentation** for understanding the system
+
+## 📋 Common Tasks
+
+### Adding a New Feature
+1. Read `quick-start.mdc` for basic patterns
+2. Check `react-component.mdc` for component structure
+3. Review `zustand-slice-organization.mdc` for state management
+4. Follow `testing-guide.mdc` for testing requirements
+
+### Adding a New AI Provider
+1. Read `ai-provider-integration.mdc` for complete guide
+2. Check `add-provider-doc.mdc` for documentation requirements
+3. Follow `testing-guide.mdc` for testing patterns
+
+### Database Changes
+1. Read `database-patterns.mdc` for database operations
+2. Check `define-database-model.mdc` for model definition
+3. Review `drizzle-schema-style-guide.mdc` for schema conventions
+
+### Performance Issues
+1. Read `performance-optimization.mdc` for optimization strategies
+2. Check `react-component.mdc` for React optimization
+3. Review `database-patterns.mdc` for database optimization
+
+### Security Concerns
+1. Read `security-guidelines.mdc` for security best practices
+2. Check `backend-architecture.mdc` for API security
+3. Review `code-review.mdc` for security review process
+
+## 🔧 Cursor Configuration
+
+### File Organization
+```
+.cursor/
+├── README.md                    # This file
+├── rules/                       # Rule files
+│   ├── index.mdc               # Main index
+│   ├── quick-start.mdc         # Quick start guide
+│   ├── development-workflow.mdc # Development process
+│   ├── ai-provider-integration.mdc # AI provider guide
+│   ├── plugin-development.mdc  # Plugin development
+│   ├── database-patterns.mdc   # Database patterns
+│   ├── performance-optimization.mdc # Performance guide
+│   ├── security-guidelines.mdc # Security guide
+│   └── ...                     # Other rule files
+└── .cursorindexingignore       # Indexing configuration
+```
+
+### Indexing Configuration
+The `.cursorindexingignore` file controls what Cursor indexes:
+- Large files and directories are excluded
+- Only relevant source code is indexed
+- Improves performance and accuracy
+
+## 📝 Contributing to Documentation
+
+### Adding New Rules
+1. Create new `.mdc` file in `rules/` directory
+2. Follow existing format and structure
+3. Include examples and code snippets
+4. Update this index file
+5. Test with Cursor AI
+
+### Updating Existing Rules
+1. Edit the relevant `.mdc` file
+2. Update examples and code snippets
+3. Test changes with Cursor AI
+4. Update this index if needed
+
+### Documentation Standards
+- Use clear, concise language
+- Include practical examples
+- Provide code snippets
+- Follow markdown best practices
+- Keep information up-to-date
+
+## 🎯 Best Practices
+
+### For Cursor AI
+- Always reference relevant rule files
+- Follow established patterns
+- Provide context for decisions
+- Include error handling
+- Write comprehensive tests
+
+### For Developers
+- Read relevant documentation before starting
+- Follow established patterns
+- Ask questions when unclear
+- Contribute to documentation
+- Share knowledge with team
+
+## 📚 External Resources
+
+### LobeChat
+- **Main Repository**: https://github.com/lobehub/lobe-chat
+- **Documentation**: https://lobehub.com/docs
+- **Community**: https://discord.gg/lobehub
+
+### Technologies
+- **Next.js**: https://nextjs.org/docs
+- **React**: https://react.dev
+- **TypeScript**: https://www.typescriptlang.org/docs
+- **Zustand**: https://zustand-demo.pmnd.rs
+- **Drizzle ORM**: https://orm.drizzle.team
+
+## 🔍 Troubleshooting
+
+### Common Issues
+- **Cursor not following rules**: Check file format and syntax
+- **Missing context**: Ensure all relevant files are indexed
+- **Outdated information**: Update rule files regularly
+- **Performance issues**: Check indexing configuration
+
+### Getting Help
+- **GitHub Issues**: Report documentation issues
+- **Discord**: Ask questions in community
+- **Documentation**: Check existing guides
+- **Code Review**: Get feedback from team
+
+---
+
+*This documentation ensures Cursor AI can effectively assist with LobeChat development while maintaining code quality and consistency.*

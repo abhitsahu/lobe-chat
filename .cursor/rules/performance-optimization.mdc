@@ -1,0 +1,512 @@
+---
+description: Performance optimization patterns and best practices for LobeChat
+alwaysApply: true
+---
+
+# ⚡ Performance Optimization Guide
+
+## Overview
+LobeChat is built for performance with modern React patterns, efficient state management, and optimized rendering. This guide covers key optimization strategies.
+
+## 🚀 React Performance
+
+### Component Optimization
+```typescript
+// Use React.memo for expensive components
+export const ExpensiveComponent = React.memo(({ data, onUpdate }) => {
+  return (
+    <div>
+      {data.map(item => (
+        <ItemComponent key={item.id} item={item} />
+      ))}
+    </div>
+  );
+});
+
+// Use useMemo for expensive calculations
+export const DataProcessor = ({ rawData }) => {
+  const processedData = useMemo(() => {
+    return rawData.map(item => ({
+      ...item,
+      processed: expensiveCalculation(item),
+    }));
+  }, [rawData]);
+
+  return <div>{/* Render processed data */}</div>;
+};
+
+// Use useCallback for stable function references
+export const ParentComponent = () => {
+  const [items, setItems] = useState([]);
+  
+  const handleItemUpdate = useCallback((id, updates) => {
+    setItems(prev => prev.map(item => 
+      item.id === id ? { ...item, ...updates } : item
+    ));
+  }, []);
+
+  return (
+    <div>
+      {items.map(item => (
+        <ItemComponent 
+          key={item.id} 
+          item={item} 
+          onUpdate={handleItemUpdate}
+        />
+      ))}
+    </div>
+  );
+};
+```
+
+### List Virtualization
+```typescript
+// Use react-virtuoso for large lists
+import { Virtuoso } from 'react-virtuoso';
+
+export const VirtualizedList = ({ items }) => {
+  const itemContent = (index: number) => (
+    <ItemComponent item={items[index]} />
+  );
+
+  return (
+    <Virtuoso
+      data={items}
+      itemContent={itemContent}
+      style={{ height: '400px' }}
+    />
+  );
+};
+```
+
+### Code Splitting
+```typescript
+// Lazy load components
+const LazyComponent = lazy(() => import('./LazyComponent'));
+
+export const App = () => {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LazyComponent />
+    </Suspense>
+  );
+};
+
+// Route-based code splitting
+const ChatPage = lazy(() => import('./pages/ChatPage'));
+const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+```
+
+## 🗃️ State Management Optimization
+
+### Zustand Store Patterns
+```typescript
+// Use selectors to prevent unnecessary re-renders
+export const useChatStore = create<ChatState>((set, get) => ({
+  messages: [],
+  activeId: null,
+  
+  // Actions
+  addMessage: (message) => set(state => ({
+    messages: [...state.messages, message]
+  })),
+  
+  setActiveId: (id) => set({ activeId: id }),
+}));
+
+// Selectors
+export const chatSelectors = {
+  messages: (state: ChatState) => state.messages,
+  activeMessage: (state: ChatState) => 
+    state.messages.find(m => m.id === state.activeId),
+  messageCount: (state: ChatState) => state.messages.length,
+};
+
+// Usage in components
+export const MessageList = () => {
+  const messages = useChatStore(chatSelectors.messages);
+  // Only re-renders when messages change
+};
+```
+
+### State Normalization
+```typescript
+// Normalize data structure
+interface NormalizedState {
+  messages: Record<string, Message>;
+  messageIds: string[];
+  activeId: string | null;
+}
+
+// Selectors for normalized data
+export const messageSelectors = {
+  allMessages: (state: NormalizedState) => 
+    state.messageIds.map(id => state.messages[id]),
+  
+  messageById: (id: string) => (state: NormalizedState) => 
+    state.messages[id],
+  
+  activeMessage: (state: NormalizedState) => 
+    state.activeId ? state.messages[state.activeId] : null,
+};
+```
+
+## 🌐 Network Optimization
+
+### SWR Configuration
+```typescript
+// Optimize SWR with proper configuration
+const { data, error, mutate } = useSWR(
+  '/api/sessions',
+  fetcher,
+  {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+    dedupingInterval: 60000, // 1 minute
+    errorRetryCount: 3,
+    errorRetryInterval: 5000,
+  }
+);
+
+// Prefetch data
+const prefetchSession = (id: string) => {
+  mutate(`/api/sessions/${id}`, fetcher(`/api/sessions/${id}`));
+};
+```
+
+### Request Optimization
+```typescript
+// Batch requests
+const batchRequests = async (requests: Request[]) => {
+  const responses = await Promise.all(requests);
+  return responses;
+};
+
+// Debounce API calls
+const debouncedSearch = useMemo(
+  () => debounce(async (query: string) => {
+    const results = await searchAPI(query);
+    setSearchResults(results);
+  }, 300),
+  []
+);
+```
+
+## 🎨 Rendering Optimization
+
+### CSS-in-JS Optimization
+```typescript
+// Use antd-style with proper caching
+const useStyles = createStyles(({ token, css }) => ({
+  container: css`
+    padding: ${token.padding}px;
+    background: ${token.colorBgContainer};
+    
+    &:hover {
+      background: ${token.colorBgContainerHover};
+    }
+  `,
+  
+  // Use CSS variables for dynamic values
+  dynamic: css`
+    color: var(--text-color);
+    font-size: var(--font-size);
+  `,
+}));
+```
+
+### Image Optimization
+```typescript
+// Use Next.js Image component
+import Image from 'next/image';
+
+export const OptimizedImage = ({ src, alt, ...props }) => (
+  <Image
+    src={src}
+    alt={alt}
+    width={400}
+    height={300}
+    placeholder="blur"
+    blurDataURL="data:image/jpeg;base64,..."
+    {...props}
+  />
+);
+
+// Lazy load images
+export const LazyImage = ({ src, alt }) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+  
+  return (
+    <div className="image-container">
+      {!isLoaded && <div className="placeholder" />}
+      <img
+        src={src}
+        alt={alt}
+        onLoad={() => setIsLoaded(true)}
+        style={{ display: isLoaded ? 'block' : 'none' }}
+      />
+    </div>
+  );
+};
+```
+
+## 🗄️ Database Optimization
+
+### Query Optimization
+```typescript
+// Use select only needed columns
+const getSessionSummary = async (id: string) => {
+  return await db
+    .select({
+      id: sessions.id,
+      title: sessions.title,
+      updatedAt: sessions.updatedAt,
+    })
+    .from(sessions)
+    .where(eq(sessions.id, id));
+};
+
+// Use indexes effectively
+const getRecentMessages = async (sessionId: string, limit: number) => {
+  return await db
+    .select()
+    .from(messages)
+    .where(eq(messages.sessionId, sessionId))
+    .orderBy(desc(messages.createdAt))
+    .limit(limit);
+};
+```
+
+### Connection Pooling
+```typescript
+// Configure connection pool
+const db = drizzle(pool, {
+  schema,
+  logger: process.env.NODE_ENV === 'development',
+});
+
+// Use transactions for complex operations
+const transferData = async (fromId: string, toId: string) => {
+  return await db.transaction(async (tx) => {
+    const fromData = await tx.select().from(table).where(eq(table.id, fromId));
+    await tx.insert(table).values(fromData.map(item => ({ ...item, id: toId })));
+    await tx.delete(table).where(eq(table.id, fromId));
+  });
+};
+```
+
+## 🔧 Bundle Optimization
+
+### Webpack Configuration
+```typescript
+// next.config.ts
+const nextConfig = {
+  // Enable compression
+  compress: true,
+  
+  // Optimize chunks
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.optimization.splitChunks = {
+        chunks: 'all',
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
+          },
+        },
+      };
+    }
+    return config;
+  },
+  
+  // Enable experimental features
+  experimental: {
+    optimizeCss: true,
+    optimizePackageImports: ['@ant-design/icons', 'lucide-react'],
+  },
+};
+```
+
+### Tree Shaking
+```typescript
+// Import only what you need
+import { debounce } from 'lodash-es/debounce';
+import { Button } from 'antd/es/button';
+
+// Use dynamic imports for large libraries
+const loadChart = async () => {
+  const { Chart } = await import('chart.js');
+  return Chart;
+};
+```
+
+## 📱 Mobile Optimization
+
+### Responsive Design
+```typescript
+// Use react-layout-kit for responsive layouts
+import { Flexbox, Grid } from 'react-layout-kit';
+
+export const ResponsiveLayout = () => (
+  <Flexbox
+    direction="column"
+    gap={16}
+    style={{
+      padding: '16px',
+      '@media (max-width: 768px)': {
+        padding: '8px',
+      },
+    }}
+  >
+    <Grid
+      cols={{ xs: 1, sm: 2, md: 3 }}
+      gap={16}
+    >
+      {/* Grid items */}
+    </Grid>
+  </Flexbox>
+);
+```
+
+### Touch Optimization
+```typescript
+// Optimize touch interactions
+export const TouchOptimizedButton = ({ onClick, children }) => {
+  const [isPressed, setIsPressed] = useState(false);
+  
+  return (
+    <button
+      onClick={onClick}
+      onTouchStart={() => setIsPressed(true)}
+      onTouchEnd={() => setIsPressed(false)}
+      style={{
+        transform: isPressed ? 'scale(0.95)' : 'scale(1)',
+        transition: 'transform 0.1s ease',
+      }}
+    >
+      {children}
+    </button>
+  );
+};
+```
+
+## 🔍 Performance Monitoring
+
+### React DevTools
+```typescript
+// Use React DevTools Profiler
+import { Profiler } from 'react';
+
+const onRenderCallback = (id, phase, actualDuration) => {
+  console.log('Render:', { id, phase, actualDuration });
+};
+
+export const ProfiledComponent = () => (
+  <Profiler id="MyComponent" onRender={onRenderCallback}>
+    <MyComponent />
+  </Profiler>
+);
+```
+
+### Performance Metrics
+```typescript
+// Monitor performance metrics
+const usePerformanceMonitor = () => {
+  useEffect(() => {
+    const observer = new PerformanceObserver((list) => {
+      list.getEntries().forEach((entry) => {
+        if (entry.entryType === 'measure') {
+          console.log(`${entry.name}: ${entry.duration}ms`);
+        }
+      });
+    });
+    
+    observer.observe({ entryTypes: ['measure'] });
+    
+    return () => observer.disconnect();
+  }, []);
+};
+```
+
+## 🚨 Common Performance Issues
+
+### Memory Leaks
+```typescript
+// Clean up subscriptions
+useEffect(() => {
+  const subscription = eventEmitter.subscribe(handleEvent);
+  
+  return () => {
+    subscription.unsubscribe();
+  };
+}, []);
+
+// Clean up timers
+useEffect(() => {
+  const timer = setInterval(updateData, 1000);
+  
+  return () => {
+    clearInterval(timer);
+  };
+}, []);
+```
+
+### Unnecessary Re-renders
+```typescript
+// Use React.memo with proper comparison
+const MyComponent = React.memo(({ data, onUpdate }) => {
+  // Component logic
+}, (prevProps, nextProps) => {
+  return prevProps.data.id === nextProps.data.id &&
+         prevProps.data.updatedAt === nextProps.data.updatedAt;
+});
+```
+
+## 📊 Performance Testing
+
+### Load Testing
+```typescript
+// Test component performance
+import { render, screen } from '@testing-library/react';
+import { performance } from 'perf_hooks';
+
+describe('Performance Tests', () => {
+  it('should render large list efficiently', () => {
+    const start = performance.now();
+    
+    render(<LargeList items={generateLargeDataset(1000)} />);
+    
+    const end = performance.now();
+    expect(end - start).toBeLessThan(100); // Should render in < 100ms
+  });
+});
+```
+
+### Bundle Analysis
+```bash
+# Analyze bundle size
+npm run build:analyze
+
+# Check for duplicate dependencies
+npm ls --depth=0
+```
+
+## 📚 Resources
+
+### React Performance
+- **React DevTools**: https://react.dev/learn/react-developer-tools
+- **Profiler API**: https://react.dev/reference/react/Profiler
+
+### Web Performance
+- **Web Vitals**: https://web.dev/vitals/
+- **Lighthouse**: https://developers.google.com/web/tools/lighthouse
+
+### Bundle Analysis
+- **Webpack Bundle Analyzer**: https://www.npmjs.com/package/webpack-bundle-analyzer
+- **Bundlephobia**: https://bundlephobia.com/
+
+---
+
+*This guide ensures optimal performance across all aspects of LobeChat.*

@@ -1,0 +1,207 @@
+---
+description: Quick start guide for LobeChat development with Cursor
+alwaysApply: true
+---
+
+# 🚀 LobeChat Quick Start Guide
+
+## Project Overview
+LobeChat is an open-source AI chat application built with Next.js 15, React 19, and TypeScript. It supports multiple AI providers, plugins, and features like voice, vision, and text-to-image.
+
+## 🎯 Common Tasks
+
+### Adding a New Feature
+1. **Create feature directory**: `src/features/YourFeature/`
+2. **Add types**: `src/types/yourFeature.ts`
+3. **Create store**: `src/store/yourFeature/`
+4. **Build components**: `src/features/YourFeature/components/`
+5. **Add tests**: `src/features/YourFeature/__tests__/`
+
+### Adding a New AI Provider
+1. **Add model config**: `src/config/aiModels/provider.ts`
+2. **Create runtime**: `src/libs/model-runtime/provider/`
+3. **Add icons**: `@lobehub/icons` package
+4. **Update types**: `packages/types/src/llm.ts`
+
+### Adding a New Page
+1. **Create route**: `src/app/your-page/page.tsx`
+2. **Add layout**: `src/app/your-page/layout.tsx`
+3. **Create components**: `src/app/your-page/features/`
+4. **Add navigation**: Update sidebar or menu
+
+## 🏗️ Architecture Patterns
+
+### Component Structure
+```typescript
+// Feature component
+export const YourFeature = () => {
+  const { data, loading } = useYourFeatureStore();
+  
+  return (
+    <Flexbox gap={16}>
+      <YourFeatureHeader />
+      <YourFeatureContent data={data} />
+    </Flexbox>
+  );
+};
+```
+
+### Store Pattern
+```typescript
+// Zustand store
+export const useYourFeatureStore = create<YourFeatureState>()(
+  devtools(
+    (set, get) => ({
+      // state
+      data: null,
+      loading: false,
+      
+      // actions
+      setData: (data) => set({ data }),
+      setLoading: (loading) => set({ loading }),
+    }),
+    { name: 'your-feature-store' }
+  )
+);
+```
+
+### API Integration
+```typescript
+// TRPC service
+export const yourFeatureRouter = router({
+  getData: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input, ctx }) => {
+      return ctx.yourFeatureModel.findById(input.id);
+    }),
+});
+```
+
+## 🧪 Testing Patterns
+
+### Component Test
+```typescript
+import { render, screen } from '@testing-library/react';
+import { YourComponent } from './YourComponent';
+
+describe('YourComponent', () => {
+  it('renders correctly', () => {
+    render(<YourComponent />);
+    expect(screen.getByText('Expected Text')).toBeInTheDocument();
+  });
+});
+```
+
+### Store Test
+```typescript
+import { renderHook, act } from '@testing-library/react';
+import { useYourFeatureStore } from './store';
+
+describe('useYourFeatureStore', () => {
+  it('updates data correctly', () => {
+    const { result } = renderHook(() => useYourFeatureStore());
+    
+    act(() => {
+      result.current.setData('test data');
+    });
+    
+    expect(result.current.data).toBe('test data');
+  });
+});
+```
+
+## 📁 File Organization
+
+### Feature Structure
+```
+src/features/YourFeature/
+├── index.ts                 # Main exports
+├── components/              # UI components
+│   ├── YourComponent.tsx
+│   └── YourComponent.test.tsx
+├── store/                   # State management
+│   ├── index.ts
+│   ├── initialState.ts
+│   ├── selectors.ts
+│   └── actions.ts
+├── types.ts                 # Type definitions
+└── constants.ts             # Feature constants
+```
+
+### Store Structure
+```
+src/store/yourFeature/
+├── index.ts                 # Store exports
+├── initialState.ts          # Initial state
+├── selectors.ts             # Data selectors
+├── actions.ts               # Action creators
+└── slices/                  # Feature slices
+    ├── data/
+    └── ui/
+```
+
+## 🔧 Common Commands
+
+```bash
+# Development
+pnpm dev                    # Start dev server
+pnpm build                  # Build for production
+pnpm test                   # Run tests
+pnpm type-check            # Type checking
+pnpm lint                  # Lint code
+
+# Database
+pnpm db:generate           # Generate migrations
+pnpm db:migrate            # Run migrations
+pnpm db:studio             # Open database studio
+
+# Desktop
+pnpm desktop:build         # Build desktop app
+pnpm desktop:dev           # Start desktop dev
+```
+
+## 🎨 UI Guidelines
+
+### Component Library
+- **Primary**: Ant Design (`antd`)
+- **Business**: `@lobehub/ui`
+- **Icons**: `lucide-react`, `@ant-design/icons`
+- **Layout**: `react-layout-kit`
+
+### Styling
+- **CSS-in-JS**: `antd-style`
+- **Theme**: Dark/light mode support
+- **Responsive**: Mobile-first design
+
+### Internationalization
+- **Library**: `react-i18next`
+- **Files**: `src/locales/`
+- **Usage**: `const { t } = useTranslation('namespace');`
+
+## 🚨 Common Issues
+
+### TypeScript Errors
+- Check imports and exports
+- Verify type definitions
+- Run `pnpm type-check`
+
+### Build Failures
+- Clear `.next` directory
+- Check environment variables
+- Verify dependencies
+
+### Test Failures
+- Update snapshots: `pnpm test:update`
+- Check test setup
+- Verify mocks
+
+## 📚 Key Resources
+
+- **Main Docs**: `LOBECHAT_COMPREHENSIVE_GUIDE.md`
+- **API Docs**: `src/server/` directory
+- **Component Library**: `@lobehub/ui` package
+- **Database Schema**: `src/database/schemas/`
+
+---
+
+*This guide helps you get started quickly with LobeChat development using Cursor AI.*
