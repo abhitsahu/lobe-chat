@@ -12,6 +12,7 @@ import {
   LOBE_CHAT_AUTH_HEADER,
   LOBE_CHAT_OIDC_AUTH_HEADER,
   OAUTH_AUTHORIZED,
+  enableAuth,
   enableClerk,
 } from '@/const/auth';
 import { ClerkAuth } from '@/libs/clerk-auth';
@@ -37,6 +38,18 @@ export const checkAuth =
     const isDebugApi = req.headers.get('lobe-auth-dev-backend-api') === '1';
     if (process.env.NODE_ENV === 'development' && isDebugApi) {
       return handler(req, { ...options, jwtPayload: { userId: 'DEV_USER' } });
+    }
+
+    // If authentication is disabled, skip all auth checks
+    if (!enableAuth) {
+      return handler(req, {
+        ...options,
+        jwtPayload: {
+          accessCode: '',
+          apiKey: '',
+          userId: 'anonymous',
+        },
+      });
     }
 
     let jwtPayload: ClientSecretPayload;
